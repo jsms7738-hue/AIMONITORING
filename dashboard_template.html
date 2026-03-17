@@ -261,6 +261,123 @@
             font-size: 0.75rem;
             padding: 1rem 0;
         }
+
+        /* === DEFECT MODAL === */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(6px);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--nav-border);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            width: min(720px, 95vw);
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .modal-close {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: var(--danger);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .modal-close:hover { transform: scale(1.15); }
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .modal-model-section {
+            background: var(--th-bg);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--table-border);
+        }
+        .modal-model-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+        .step-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.3rem;
+            font-size: 0.75rem;
+        }
+        .step-bar-label { width: 140px; flex-shrink: 0; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .step-bar-track { flex: 1; background: var(--table-border); border-radius: 4px; height: 14px; }
+        .step-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(to right, #1a3a8a, var(--primary)); }
+        .step-bar-count { width: 32px; text-align: right; font-weight: 700; color: var(--danger); }
+        /* fail cell clickable style */
+        .fail-cell {
+            cursor: pointer;
+            text-decoration: underline dotted;
+            transition: color 0.2s;
+        }
+        .fail-cell:hover { color: #b91c1c !important; }
+        
+        /* date cell clickable style */
+        .date-cell {
+            cursor: pointer;
+            text-decoration: underline dotted;
+            transition: color 0.2s;
+        }
+        .date-cell:hover { color: var(--primary) !important; }
+
+        /* date button scroll list */
+        .date-btn-list {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+            scrollbar-width: thin;
+        }
+        .date-btn {
+            background: var(--nav-bg);
+            border: 1px solid var(--nav-border);
+            color: var(--text-main);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .date-btn:hover { background: var(--primary); color: white; }
+        .date-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(99,102,241,0.3); }
     </style>
 </head>
 <body>
@@ -280,17 +397,30 @@
     <!-- Main Container -->
     <div class="container" id="main-container">
         <!-- Sidebar Segment -->
-        <aside class="sidebar">
-            <header>
-                <h1 id="sidebar-title">ICT Dashboard</h1>
-                <p id="sidebar-subtitle">Performance Metrics</p>
-            </header>
+        <aside class="sidebar" style="position: relative; padding-bottom: 2rem;">
+            <div id="sidebar-top-section" style="display: flex; flex-direction: column; gap: 1rem;">
+                <header style="display: flex; align-items: start; justify-content: space-between;">
+                    <div>
+                        <h1 id="sidebar-title">ICT Dashboard</h1>
+                        <p id="sidebar-subtitle">Performance Metrics</p>
+                    </div>
+                    <!-- Update Button -->
+                    <div style="position: relative;">
+                        <button id="update-btn" onclick="triggerUpdate()" title="데이터 업데이트" style="width: 32px; height: 32px; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);">
+                            <span id="update-icon" style="font-size: 1rem;">🔄</span>
+                            <span id="update-text" style="display: none;">데이터 업데이트</span>
+                        </button>
+                        <p id="update-status" style="position: absolute; right: 0; top: 100%; width: 150px; font-size: 0.6rem; color: var(--text-muted); text-align: right; background: var(--card-bg); padding: 4px 8px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; z-index: 100;"></p>
+                    </div>
+                </header>
 
-            <div id="stats-area">
-                <!-- Gauge and key stats -->
+                <div id="stats-area">
+                    <!-- Gauge and key stats -->
+                </div>
+
             </div>
 
-            <div class="stat-card compact" id="summary-card" style="margin-top: 0.5rem; flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="stat-card compact" id="summary-card" style="margin-top: 0; flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
                 <h2 id="summary-title" style="flex-shrink:0; margin-bottom: 0.5rem; color: var(--primary); font-size: 0.9rem;">📊 상세 요약</h2>
                 <div style="flex: 1; overflow-y: auto; min-height: 0;">
                     <table id="summary-table">
@@ -306,7 +436,7 @@
                 </div>
             </div>
 
-            <footer>
+            <footer style="position: absolute; bottom: 0.5rem; left: 0; width: 100%; text-align: center; font-size: 0.75rem; color: var(--text-muted); pointer-events: none;">
                 &copy; 2026 ICT Data Team
             </footer>
         </aside>
@@ -332,18 +462,27 @@
             </div>
 
             <!-- DEEP-DIVE VIEW -->
-            <div id="deep-dive-view" style="display: none; height: 100%; flex-direction: column; gap: 1rem;">
-                <div class="stat-card" style="flex-shrink: 0; min-height: 350px; height: 50%;">
-                    <h3 id="line-chart-title" style="font-size: 1.1rem; margin-bottom: 1rem; text-transform: none; font-weight: 700;">
-                        성과 추이 분석
+            <div id="deep-dive-view" style="display: none; height: 100%; flex-direction: row; gap: 1rem; overflow: hidden; padding-right: 0.5rem;">
+                
+                <!-- HIDDEN: Daily trend chart -->
+                <div style="display: none;">
+                    <canvas id="line-detail-chart"></canvas>
+                </div> <!-- End Hidden -->
+
+                <!-- LEFT HALF: Hourly Chart -->
+                <div class="stat-card" style="flex: 1.2; display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+                    <h3 id="hourly-chart-title" style="font-size: 1.1rem; margin-bottom: 0.5rem; text-transform: none; font-weight: 700; flex-shrink: 0;">
+                        시간대별 분석추이 — 전체
                     </h3>
-                    <div style="height: calc(100% - 3rem); width: 100%;">
-                        <canvas id="line-detail-chart"></canvas>
+                    <div id="date-btn-container" class="date-btn-list" style="flex-shrink: 0;"></div>
+                    <div style="flex: 1; width: 100%; min-height: 0; position: relative;">
+                        <canvas id="hourly-trend-chart"></canvas>
                     </div>
                 </div>
                 
-                <div class="stat-card" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
-                    <h3 style="font-size: 1rem; margin-bottom: 1rem; text-transform: none; font-weight: 700;">일자별 상세 기록</h3>
+                <!-- RIGHT HALF: Table -->
+                <div class="stat-card" style="flex: 1; display: flex; flex-direction: column; min-height: 0; margin-bottom: 0;">
+                    <h3 style="font-size: 1rem; margin-bottom: 0.5rem; text-transform: none; font-weight: 700; flex-shrink: 0;">일자별 상세 기록</h3>
                     <div style="flex: 1; overflow-y: auto;">
                         <table id="line-detail-table">
                             <thead>
@@ -361,6 +500,17 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Defect Modal -->
+    <div class="modal-overlay" id="defect-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">모델별 불량 STEP 분석</div>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
     </div>
 
     <!-- Error Overlay -->
@@ -509,61 +659,196 @@
                 `;
                 tbody.appendChild(tr);
             });
+            setTimeout(alignHeights, 50);
         }
+
+        function alignHeights() {
+            // Deprecated: Side-by-side flex layout naturally heights everything to 100% of container.
+        }
+        window.addEventListener('resize', alignHeights);
 
         function renderDeepDive(lineId) {
             const line = rawData.lines.find(l => l.line_id === lineId);
             if (!line) return;
             id('deep-dive-view').style.display = 'flex';
             id('sidebar-title').innerText = `Line ${lineId}`;
-            id('line-chart-title').innerText = `Line ${lineId} 상세 성과 분석`;
             id('summary-title').innerText = "🏭 생산 모델";
-            id('th-line').innerText = "모델명";
-            id('th-total').innerText = "-";
-            id('th-rate').innerText = "-";
+            id('th-line').innerText = "모델명 (Worst1)";
+            id('th-total').innerText = "생산량";
+            id('th-rate').innerText = "직행율";
             
             const tbody = document.querySelector('#summary-table tbody');
-            line.models.forEach(m => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="3" style="font-size:0.7rem; text-align:left;">${m}</td>`;
-                tbody.appendChild(tr);
-            });
+            if (line.model_stats) {
+                line.model_stats.forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-size:0.7rem; text-align:left; padding: 0.4rem;">
+                            <div style="font-weight:700; color:var(--text-main);">${m.name}</div>
+                            ${m.worst1_step ? `<div style="color:var(--danger); font-size:0.65rem; margin-top:0.2rem;">⚠️ ${m.worst1_step}</div>` : `<div style="color:var(--text-muted); font-size:0.65rem; margin-top:0.2rem;">-</div>`}
+                        </td>
+                        <td style="font-size:0.75rem; padding: 0.4rem;">${m.total.toLocaleString()}</td>
+                        <td style="font-size:0.75rem; font-weight:700; color:${m.pass_rate < 95 ? 'var(--danger)':'var(--success)'}; padding: 0.4rem;">${m.pass_rate}%</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                // Fallback if model_stats doesn't exist yet
+                line.models.forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td colspan="3" style="font-size:0.7rem; text-align:left;">${m}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
 
             renderSidebarStats(line);
 
-            new Chart(id('line-detail-chart').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: line.trend.map(d => d.date),
-                    datasets: [{
-                        label: '직행율 (%)',
-                        data: line.trend.map(d => d.pass_rate),
-                        borderColor: 'var(--primary)',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff', pointBorderWidth: 2
-                    }, {
-                        label: '목표 (95%)',
-                        data: line.trend.map(() => 95),
-                        borderColor: 'var(--danger)',
-                        borderDash: [5, 5], pointRadius: 0, fill: false
-                    }]
-                },
-                options: { maintainAspectRatio: false, plugins: { datalabels: { display: true, align: 'top', font: { weight: 'bold', size: 10 }, formatter: v => v + '%' } }, scales: { y: { min: 80, max: 105 }, x: { ticks: { font: { size: 9 }, maxRotation: 45 } } } }
-            });
+            // Removed line-detail-chart initialization because it is hidden in the new layout and causes canvas reuse errors.
+
+            window.currentLineData = line;
+            const latestDate = line.trend.length > 0 ? line.trend[line.trend.length - 1].date : null;
+            renderHourlyChart(line, latestDate);
 
             const recordBody = id('line-detail-table').querySelector('tbody');
             line.trend.slice().reverse().forEach(d => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td style="font-weight:700;">${d.date}</td>
+                    <td class="date-cell" style="font-weight:700;" onclick="renderHourlyChart(window.currentLineData, '${d.date}')">${d.date} 📊</td>
                     <td>${d.total.toLocaleString()}</td>
                     <td style="color:var(--success)">${d.pass.toLocaleString()}</td>
-                    <td style="color:var(--danger)">${d.fail.toLocaleString()}</td>
+                    <td class="fail-cell" style="color:var(--danger); font-weight:700;" onclick="showFailModal('${lineId}', '${d.date}')">${d.fail.toLocaleString()} 🔍</td>
                     <td style="font-weight:700; color:${d.pass_rate < 95 ? 'var(--danger)':'var(--primary)'}">${d.pass_rate}%</td>
                 `;
                 recordBody.appendChild(tr);
             });
         }
+
+        function renderHourlyChart(line, filterDate) {
+            if (!line) return;
+            const hrCanvas = id('hourly-trend-chart');
+            const titleEl = id('hourly-chart-title');
+            
+            // Build date buttons
+            const btnContainer = id('date-btn-container');
+            if (btnContainer) {
+                btnContainer.innerHTML = '';
+                // "All" button
+                const allBtn = document.createElement('button');
+                allBtn.className = `date-btn ${!filterDate ? 'active' : ''}`;
+                allBtn.innerText = '전체 보기';
+                allBtn.onclick = () => renderHourlyChart(line, null);
+                btnContainer.appendChild(allBtn);
+
+                // Individual date buttons
+                line.trend.slice().reverse().forEach(d => {
+                    const btn = document.createElement('button');
+                    btn.className = `date-btn ${filterDate === d.date ? 'active' : ''}`;
+                    btn.innerText = d.date;
+                    btn.onclick = () => renderHourlyChart(line, d.date);
+                    btnContainer.appendChild(btn);
+                });
+            }
+
+            let data = line.hourly_trend || [];
+            if (filterDate) {
+                data = data.filter(d => d.time_slot.startsWith(filterDate));
+                if(titleEl) titleEl.innerText = `시간대별 분석추이 — ${filterDate}`;
+            } else {
+                if(titleEl) titleEl.innerText = `시간대별 분석추이 — 전체`;
+            }
+
+            if (window.hourlyChartInstance) window.hourlyChartInstance.destroy();
+            
+            if (data.length > 0) {
+                window.hourlyChartInstance = new Chart(hrCanvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: filterDate ? data.map(d => d.time_slot.replace(filterDate + ' ', '')) : data.map(d => d.time_slot),
+                        datasets: [{
+                            label: '직행율 (%)',
+                            data: data.map(d => d.pass_rate),
+                            yAxisID: 'y',
+                            type: 'line',
+                            borderColor: 'var(--primary)',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#fff', pointBorderWidth: 2,
+                            order: 1,
+                            datalabels: { display: false }
+                        }, {
+                            label: '생산량 (수량)',
+                            data: data.map(d => d.total),
+                            yAxisID: 'y1',
+                            type: 'bar',
+                            backgroundColor: 'rgba(168, 85, 247, 0.7)',
+                            borderRadius: 4,
+                            order: 2,
+                            datalabels: { 
+                                display: true, 
+                                align: 'top', 
+                                font: { weight: 'bold', size: 10 }, 
+                                formatter: (v, ctx) => [v.toLocaleString(), data[ctx.dataIndex].pass_rate + '%'], 
+                                color: 'var(--text-main)',
+                                textAlign: 'center'
+                            }
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { legend: { position: 'top', align: 'end' } },
+                        scales: {
+                            x: { grid: { color: 'rgba(0,0,0,0.05)' } },
+                            y: { type: 'linear', display: true, position: 'left', min: 70, max: 100, grid: { color: 'rgba(0,0,0,0.05)' } },
+                            y1: { type: 'linear', display: true, position: 'right', min: 0, grid: { drawOnChartArea: false } }
+                        }
+                    }
+                });
+            } else {
+                hrCanvas.getContext('2d').clearRect(0, 0, hrCanvas.width, hrCanvas.height);
+            }
+        }
+
+        function showFailModal(lineId, date) {
+            const line = rawData.lines.find(l => l.line_id === lineId);
+            if (!line || !line.fail_steps) return;
+            const modal = id('defect-modal');
+            const title = id('modal-title');
+            const body  = id('modal-body');
+            title.innerText = `Line ${lineId} — ${date || '전체'} 불량 STEP 분석`;
+            body.innerHTML = '';
+
+            const fs = line.fail_steps;
+            const models = Object.keys(fs).sort();
+            if (models.length === 0) {
+                body.innerHTML = '<p style="color:var(--text-muted);text-align:center">STEP 데이터 없음</p>';
+            } else {
+                models.forEach(model => {
+                    const steps = fs[model];
+                    if (!steps || steps.length === 0) return;
+                    const maxCount = steps[0].count || 1;
+                    const sec = document.createElement('div');
+                    sec.className = 'modal-model-section';
+                    let rows = steps.map(s => `
+                        <div class="step-bar-row">
+                            <div class="step-bar-label" title="${s.step}">${s.step}</div>
+                            <div class="step-bar-track"><div class="step-bar-fill" style="width:${Math.round(s.count/maxCount*100)}%"></div></div>
+                            <div class="step-bar-count">${s.count}</div>
+                        </div>
+                    `).join('');
+                    sec.innerHTML = `<div class="modal-model-title">📦 ${model}</div>${rows}`;
+                    body.appendChild(sec);
+                });
+            }
+            modal.classList.add('open');
+        }
+
+        function closeModal() {
+            id('defect-modal').classList.remove('open');
+        }
+
+        // Close modal on background click
+        id('defect-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
 
         function toggleTheme() {
             const isDark = document.body.classList.toggle('dark-theme');
@@ -580,6 +865,56 @@
                 if (btn) btn.innerText = '☀️';
             }
         })();
+
+        async function triggerUpdate() {
+            const btn = id('update-btn');
+            const icon = id('update-icon');
+            const text = id('update-text');
+            const status = id('update-status');
+
+            if (btn.disabled) return;
+
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.style.cursor = 'not-allowed';
+            icon.style.animation = 'spin 1s linear infinite';
+            text.innerText = '업데이트 중...';
+            status.style.display = 'block';
+            status.innerText = 'Excel 데이터 분석 및 파일 생성 중...';
+            status.style.color = 'var(--text-muted)';
+
+            try {
+                const response = await fetch('/api/update', { method: 'POST' });
+                const result = await response.json();
+
+                if (result.success) {
+                    status.innerText = '✅ 업데이트 완료! 잠시 후 새로고침합니다.';
+                    status.style.color = 'var(--success)';
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    throw new Error(result.message || '업데이트 실패');
+                }
+            } catch (e) {
+                console.error(e);
+                status.innerText = '❌ 오류: ' + e.message;
+                status.style.color = 'var(--danger)';
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                icon.style.animation = 'none';
+                text.innerText = '데이터 업데이트';
+            }
+        }
+
+        // CSS for spinning icon
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
 
         try {
             if (typeof rawData === 'undefined') throw new Error("Data Error");
