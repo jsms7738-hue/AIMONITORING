@@ -382,7 +382,7 @@
 </head>
 <body>
     <!-- Navigation Sidebar -->
-    <nav class="nav-sidebar" id="nav-sidebar">
+    <nav class="nav-sidebar" id="nav-sidebar" style="z-index: 1000;">
         <a href="dashboard.html" class="nav-item" id="nav-home" title="종합 대시보드">
             <span class="icon">🏠</span>
             <span class="label">종합</span>
@@ -397,25 +397,26 @@
     <!-- Main Container -->
     <div class="container" id="main-container">
         <!-- Sidebar Segment -->
-        <aside class="sidebar" style="position: relative; padding-bottom: 2rem;">
+        <aside class="sidebar" id="sidebar" style="position: relative; padding-bottom: 2rem;">
             <div id="sidebar-top-section" style="display: flex; flex-direction: column; gap: 1rem;">
                 <header style="display: flex; align-items: start; justify-content: space-between;">
                     <div>
-                        <h1 id="sidebar-title">ICT Dashboard</h1>
-                        <p id="sidebar-subtitle">Performance Metrics</p>
-                    </div>
-                    <!-- Update Button -->
-                    <div style="position: relative;">
-                        <button id="update-btn" onclick="triggerUpdate()" title="데이터 업데이트" style="width: 32px; height: 32px; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);">
-                            <span id="update-icon" style="font-size: 1rem;">🔄</span>
-                            <span id="update-text" style="display: none;">데이터 업데이트</span>
-                        </button>
-                        <p id="update-status" style="position: absolute; right: 0; top: 100%; width: 150px; font-size: 0.6rem; color: var(--text-muted); text-align: right; background: var(--card-bg); padding: 4px 8px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; z-index: 100;"></p>
+                        <h1 id="sidebar-title" style="font-size: 1.1rem;">ICT Dashboard</h1>
+                        <p id="sidebar-subtitle" style="font-size: 0.75rem;">Performance Metrics</p>
                     </div>
                 </header>
 
+                <!-- Update Button (Repositioned) -->
+                <div style="position: relative; margin: 0.2rem 0;">
+                    <button id="update-btn" onclick="triggerUpdate()" title="데이터 업데이트" style="width: 100%; height: 38px; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.6rem; transition: all 0.3s ease; box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2); font-family: inherit;">
+                        <span id="update-icon" style="font-size: 1rem;">🔄</span>
+                        <span style="font-size: 0.8rem; font-weight: 700;">데이터 업데이트</span>
+                    </button>
+                    <p id="update-status" style="position: absolute; right: 0; top: 100%; width: 100%; font-size: 0.6rem; color: var(--text-muted); text-align: center; background: var(--card-bg); padding: 4px 8px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; z-index: 100;"></p>
+                </div>
+
                 <div id="stats-area">
-                    <!-- Gauge and key stats -->
+                    <!-- Overall Stats here for Overview mode -->
                 </div>
 
             </div>
@@ -436,7 +437,7 @@
                 </div>
             </div>
 
-            <footer style="position: absolute; bottom: 0.5rem; left: 0; width: 100%; text-align: center; font-size: 0.75rem; color: var(--text-muted); pointer-events: none;">
+            <footer style="position: absolute; bottom: 0.5rem; left: 0; width: 100%; text-align: center; font-size: 0.7rem; color: var(--text-muted); pointer-events: none;">
                 &copy; 2026 ICT Data Team
             </footer>
         </aside>
@@ -461,41 +462,74 @@
                 </div>
             </div>
 
-            <!-- DEEP-DIVE VIEW -->
-            <div id="deep-dive-view" style="display: none; height: 100%; flex-direction: row; gap: 1rem; overflow: hidden; padding-right: 0.5rem;">
+            <!-- DEEP-DIVE VIEW (MATCHING IMAGE LAYOUT) -->
+            <div id="deep-dive-view" style="display: none; height: 100%; flex-direction: column; gap: 1rem; overflow: hidden; padding: 0.5rem 1rem 1rem 0; width: 100%;">
                 
-                <!-- HIDDEN: Daily trend chart -->
-                <div style="display: none;">
-                    <canvas id="line-detail-chart"></canvas>
-                </div> <!-- End Hidden -->
+                <!-- NEW TOP HEADER: Line Title & Update Button side-by-side -->
+                <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 0.5rem; flex-shrink: 0; padding-left: 0.5rem;">
+                    <h1 id="deep-dive-title" style="font-size: 1.8rem; font-weight: 800; color: var(--primary);">Line 2A</h1>
+                    <button id="deep-dive-update-btn" onclick="triggerUpdate()" title="데이터 업데이트" style="padding: 0.4rem 0.8rem; border-radius: 4px; border: none; background: var(--primary); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: all 0.3s ease; box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2); font-family: inherit;">
+                        <span id="update-icon-deep" style="font-size: 0.8rem;">🔄</span>
+                        <span style="font-size: 0.7rem; font-weight: 700;">데이터 업데이트</span>
+                    </button>
+                    <p id="update-status-deep" style="font-size: 0.7rem; color: var(--text-muted); margin-left: auto;"></p>
+                </div>
 
-                <!-- LEFT HALF: Hourly Chart -->
-                <div class="stat-card" style="flex: 1.2; display: flex; flex-direction: column; min-width: 0; min-height: 0;">
-                    <h3 id="hourly-chart-title" style="font-size: 1.1rem; margin-bottom: 0.5rem; text-transform: none; font-weight: 700; flex-shrink: 0;">
-                        시간대별 분석추이 — 전체
-                    </h3>
-                    <div id="date-btn-container" class="date-btn-list" style="flex-shrink: 0;"></div>
-                    <div style="flex: 1; width: 100%; min-height: 0; position: relative;">
-                        <canvas id="hourly-trend-chart"></canvas>
+                <!-- ROW 1: Yield Rate (Left) and Models (Right) -->
+                <div style="display: flex; gap: 1rem; flex-shrink: 0; min-height: 180px; height: 180px;">
+                    <!-- Yield card -->
+                    <div id="deep-dive-yield-card" style="flex: 0.35;"></div>
+                    <!-- Models card -->
+                    <div id="deep-dive-models-card" class="stat-card" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 1rem 1.5rem;">
+                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                             <h3 style="font-size: 1rem; color: var(--primary); font-weight: 700;">📦 생산 모델 (모델별 직행율 분석)</h3>
+                             <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">(스크롤하여 전체 모델 확인)</span>
+                         </div>
+                         <div style="flex: 1; overflow-y: auto; border-radius: 8px;">
+                             <table id="deep-dive-summary-table">
+                                 <thead style="position: sticky; top: 0; z-index: 2;">
+                                     <tr style="background: var(--card-bg);">
+                                         <th style="text-align: left; padding: 0.6rem; font-size: 0.85rem; border-bottom: 2px solid var(--table-border);">모델명 (Worst1 Step)</th>
+                                         <th style="padding: 0.6rem; font-size: 0.85rem; border-bottom: 2px solid var(--table-border);">생산량</th>
+                                         <th style="padding: 0.6rem; font-size: 0.85rem; border-bottom: 2px solid var(--table-border);">직행율</th>
+                                     </tr>
+                                 </thead>
+                                 <tbody></tbody>
+                             </table>
+                         </div>
                     </div>
                 </div>
-                
-                <!-- RIGHT HALF: Table -->
-                <div class="stat-card" style="flex: 1; display: flex; flex-direction: column; min-height: 0; margin-bottom: 0;">
-                    <h3 style="font-size: 1rem; margin-bottom: 0.5rem; text-transform: none; font-weight: 700; flex-shrink: 0;">일자별 상세 기록</h3>
-                    <div style="flex: 1; overflow-y: auto;">
-                        <table id="line-detail-table">
-                            <thead>
-                                <tr>
-                                    <th>일자</th>
-                                    <th>전체</th>
-                                    <th>합격(G)</th>
-                                    <th>불합격(N)</th>
-                                    <th>직행율</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+
+                <!-- ROW 2: Hourly Analysis (Left) and Daily Records (Right) -->
+                <div style="display: flex; gap: 1rem; flex: 1; min-height: 0;">
+                    <!-- Hourly Analysis Chart -->
+                    <div class="stat-card" style="flex: 1.3; display: flex; flex-direction: column; padding: 1.5rem; overflow: hidden;">
+                        <h2 id="deep-dive-hourly-title" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.8rem;">시간대별 분석추이 — 전체</h2>
+                        <div id="date-btn-container" class="date-btn-list" style="flex-shrink: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--table-border); padding-bottom: 0.5rem;">
+                            <!-- JS will populate dates -->
+                        </div>
+                        <div style="flex: 1; position: relative; min-height: 0;">
+                            <canvas id="hourly-trend-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Daily History Table -->
+                    <div class="stat-card" style="flex: 0.8; display: flex; flex-direction: column; padding: 1.5rem; overflow: hidden;">
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 1rem;">일자별 상세 기록</h2>
+                        <div style="flex: 1; overflow-y: auto; border-radius: 8px;">
+                            <table id="line-detail-table">
+                                <thead style="position: sticky; top: 0; z-index: 2;">
+                                    <tr style="background: var(--card-bg);">
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">일자</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">전체</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">합격(G)</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">불합격(N)</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">직행율</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -553,45 +587,36 @@
             const rate = data.pass_rate;
             
             area.innerHTML = `
-                <div class="stat-card" style="padding: 1rem;">
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                        <div style="width: 140px; height: 140px; position: relative;">
-                            <canvas id="gauge-canvas"></canvas>
-                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.4rem; font-weight: 800; color: var(--primary);">
-                                ${rate}%
-                            </div>
-                        </div>
-                        <h3 style="font-size: 0.75rem; color: var(--text-muted); text-align: center;">ICT 직행율</h3>
+                <div class="stat-card" style="padding: 1.5rem 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px;">
+                    <h3 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-align: center; width: 100%; font-weight: 700;">ICT 직행율</h3>
+                    <div style="font-size: 4.2rem; font-weight: 900; line-height: 1; letter-spacing: -2px; color: ${rate < 95 ? 'var(--danger)' : 'var(--primary)'}; margin: 0.5rem 0; text-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                        ${rate}<span style="font-size: 1.8rem; font-weight: 700; color: var(--text-muted); margin-left: -2px;">%</span>
                     </div>
-                    <div style="border-top: 1px solid rgba(0,0,0,0.05); padding-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
-                            <span>전체 생산</span><span style="font-weight:700;">${data.total.toLocaleString()}</span>
+                    <div style="width: 100%; border-top: 1px solid var(--table-border); padding-top: 1.25rem; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="color: var(--text-muted);">전체 생산</span><span style="font-weight:700;">${data.total.toLocaleString()}</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
-                            <span>합격 / 불합격</span>
-                            <span><span style="color:var(--success)">${data.pass.toLocaleString()}</span> / <span style="color:var(--danger)">${data.fail.toLocaleString()}</span></span>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span style="color: var(--text-muted);">합격 / 불합격</span>
+                            <span><span style="color:var(--success); font-weight:700;">${data.pass.toLocaleString()}</span> / <span style="color:var(--danger); font-weight:700;">${data.fail.toLocaleString()}</span></span>
                         </div>
                     </div>
                 </div>
             `;
-
-            new Chart(id('gauge-canvas').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [data.pass, data.fail],
-                        backgroundColor: [rate < 95 ? 'var(--danger)' : '#1a3a8a', '#d1d5db'],
-                        borderWidth: 0,
-                        circumference: 270,
-                        rotation: 225
-                    }]
-                },
-                options: { maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { display: false } } }
-            });
         }
 
         function renderOverview() {
             id('overview-view').style.display = 'flex';
+            id('deep-dive-view').style.display = 'none';
+            
+            // Show sidebar only in Overview mode
+            id('nav-sidebar').style.display = 'flex';
+            id('sidebar').style.display = 'flex';
+            
+            id('stats-area').style.display = 'block';
+            id('summary-card').style.display = 'flex';
+            
+            id('sidebar-title').innerText = 'ICT Dashboard';
             renderSidebarStats(rawData.overall);
             
             new Chart(id('daily-avg-chart').getContext('2d'), {
@@ -670,45 +695,70 @@
         function renderDeepDive(lineId) {
             const line = rawData.lines.find(l => l.line_id === lineId);
             if (!line) return;
+
+            // Hide sidebar for Deep-Dive to match user's full-width image
+            id('nav-sidebar').style.display = 'none';
+            id('sidebar').style.display = 'none';
+
             id('deep-dive-view').style.display = 'flex';
-            id('sidebar-title').innerText = `Line ${lineId}`;
-            id('summary-title').innerText = "🏭 생산 모델";
-            id('th-line').innerText = "모델명 (Worst1)";
-            id('th-total').innerText = "생산량";
-            id('th-rate').innerText = "직행율";
+            id('deep-dive-title').innerText = `Line ${lineId}`;
             
-            const tbody = document.querySelector('#summary-table tbody');
+            // Hide sidebar metrics in Line mode
+            id('stats-area').style.display = 'none';
+            id('summary-card').style.display = 'none';
+
+            // Populate Top Metrics
+            const yieldContainer = id('deep-dive-yield-card');
+            const rate = line.pass_rate;
+            yieldContainer.innerHTML = `
+                <div class="stat-card" style="padding: 0.8rem 1rem; display: flex; flex-direction: row; align-items: center; gap: 0.8rem; height: 100%; border-left: 4px solid ${rate < 95 ? 'var(--danger)' : 'var(--primary)'};">
+                    <div style="flex: 1; text-align: center;">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem; font-weight: 700;">ICT 직행율</p>
+                        <div style="font-size: 2.8rem; font-weight: 900; color: ${rate < 95 ? 'var(--danger)' : 'var(--primary)'}; line-height: 1;">
+                            ${rate}<span style="font-size: 1rem; color: var(--text-muted);">%</span>
+                        </div>
+                    </div>
+                    <div style="width: 1px; background: var(--table-border); height: 60%;"></div>
+                    <div style="flex: 1.3; display: flex; flex-direction: column; gap: 0.3rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                            <span style="color:var(--text-muted)">전체생산:</span>
+                            <b style="color:var(--text-main)">${line.total.toLocaleString()}</b>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                            <span style="color:var(--success)">합격(G):</span>
+                            <b style="color:var(--success)">${line.pass.toLocaleString()}</b>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                            <span style="color:var(--danger)">불합격(N):</span>
+                            <b style="color:var(--danger)">${line.fail.toLocaleString()}</b>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const tbody = document.querySelector('#deep-dive-summary-table tbody');
+            tbody.innerHTML = '';
             if (line.model_stats) {
                 line.model_stats.forEach(m => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td style="font-size:0.7rem; text-align:left; padding: 0.4rem;">
-                            <div style="font-weight:700; color:var(--text-main);">${m.name}</div>
-                            ${m.worst1_step ? `<div style="color:var(--danger); font-size:0.65rem; margin-top:0.2rem;">⚠️ ${m.worst1_step}</div>` : `<div style="color:var(--text-muted); font-size:0.65rem; margin-top:0.2rem;">-</div>`}
+                        <td style="font-size:0.75rem; text-align:left; padding: 0.5rem;">
+                            <div style="font-weight:700; color:var(--text-main); font-size:0.8rem;">${m.name}</div>
+                            ${m.worst1_step ? `<div style="color:var(--danger); font-size:0.65rem; margin-top:0.2rem;">⚠️ Worst: ${m.worst1_step}</div>` : `<div style="color:var(--text-muted); font-size:0.65rem; margin-top:0.2rem;">-</div>`}
                         </td>
-                        <td style="font-size:0.75rem; padding: 0.4rem;">${m.total.toLocaleString()}</td>
-                        <td style="font-size:0.75rem; font-weight:700; color:${m.pass_rate < 95 ? 'var(--danger)':'var(--success)'}; padding: 0.4rem;">${m.pass_rate}%</td>
+                        <td style="font-size:0.8rem; padding: 0.5rem; font-weight:600;">${m.total.toLocaleString()}</td>
+                        <td style="font-size:0.85rem; font-weight:700; color:${m.pass_rate < 95 ? 'var(--danger)':'var(--success)'}; padding: 0.5rem;">${m.pass_rate}%</td>
                     `;
                     tbody.appendChild(tr);
                 });
-            } else {
-                // Fallback if model_stats doesn't exist yet
-                line.models.forEach(m => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td colspan="3" style="font-size:0.7rem; text-align:left;">${m}</td>`;
-                    tbody.appendChild(tr);
-                });
             }
-
-            renderSidebarStats(line);
-
-            // Removed line-detail-chart initialization because it is hidden in the new layout and causes canvas reuse errors.
 
             window.currentLineData = line;
             const latestDate = line.trend.length > 0 ? line.trend[line.trend.length - 1].date : null;
             renderHourlyChart(line, latestDate);
 
             const recordBody = id('line-detail-table').querySelector('tbody');
+            recordBody.innerHTML = '';
             line.trend.slice().reverse().forEach(d => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -869,40 +919,41 @@
         async function triggerUpdate() {
             const btn = id('update-btn');
             const icon = id('update-icon');
-            const text = id('update-text');
             const status = id('update-status');
+            
+            const btnDeep = id('deep-dive-update-btn');
+            const iconDeep = id('update-icon-deep');
+            const statusDeep = id('update-status-deep');
 
-            if (btn.disabled) return;
+            const setStatus = (msg, color) => {
+                if(status) { status.innerText = msg; status.style.color = color; status.style.display = 'block'; }
+                if(statusDeep) { statusDeep.innerText = msg; statusDeep.style.color = color; }
+            };
 
-            btn.disabled = true;
-            btn.style.opacity = '0.7';
-            btn.style.cursor = 'not-allowed';
-            icon.style.animation = 'spin 1s linear infinite';
-            text.innerText = '업데이트 중...';
-            status.style.display = 'block';
-            status.innerText = 'Excel 데이터 분석 및 파일 생성 중...';
-            status.style.color = 'var(--text-muted)';
+            const toggleSpin = (isSpinning) => {
+                if(icon) icon.style.animation = isSpinning ? 'spin 1s linear infinite' : 'none';
+                if(iconDeep) iconDeep.style.animation = isSpinning ? 'spin 1s linear infinite' : 'none';
+                if(btn) btn.disabled = isSpinning;
+                if(btnDeep) btnDeep.disabled = isSpinning;
+            };
+
+            toggleSpin(true);
+            setStatus('Excel 데이터 분석 및 파일 생성 중...', 'var(--text-muted)');
 
             try {
                 const response = await fetch('/api/update', { method: 'POST' });
                 const result = await response.json();
 
                 if (result.success) {
-                    status.innerText = '✅ 업데이트 완료! 잠시 후 새로고침합니다.';
-                    status.style.color = 'var(--success)';
+                    setStatus('✅ 업데이트 완료! 곧 새로고침합니다.', 'var(--success)');
                     setTimeout(() => location.reload(), 2000);
                 } else {
                     throw new Error(result.message || '업데이트 실패');
                 }
             } catch (e) {
                 console.error(e);
-                status.innerText = '❌ 오류: ' + e.message;
-                status.style.color = 'var(--danger)';
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.style.cursor = 'pointer';
-                icon.style.animation = 'none';
-                text.innerText = '데이터 업데이트';
+                setStatus('❌ 오류: ' + e.message, 'var(--danger)');
+                toggleSpin(false);
             }
         }
 

@@ -5,7 +5,9 @@ import os
 # Get the directory where the script is located
 base_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(base_dir, "3월데이타 ICT.xlsx")
-output_dir = r"C:\Users\yoonh\.gemini\antigravity\brain\69bb9edf-8aaa-4b06-9beb-1982cfe6f16c"
+output_dir = os.path.join(base_dir, "data")
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 json_path = os.path.join(output_dir, "data.json")
 
 def process_file():

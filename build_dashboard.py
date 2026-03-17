@@ -4,9 +4,9 @@ import os
 
 def build():
     try:
-        base_dir = r"c:\Users\yoonh\Desktop\AI\ICT데이타"
+        base_dir = os.path.dirname(os.path.abspath(__file__))
         template_path = os.path.join(base_dir, "dashboard_template.html")
-        json_dir = r"C:\Users\yoonh\.gemini\antigravity\brain\69bb9edf-8aaa-4b06-9beb-1982cfe6f16c"
+        json_dir = os.path.join(base_dir, "data")
         json_path = os.path.join(json_dir, "data.json")
 
         print(f"Reading template from: {template_path}")
