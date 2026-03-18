@@ -24,12 +24,12 @@ def process_file():
         lines_summary = {} # {line_id: {total, pass, fail, pass_rate, models: set(), dates: []}}
         # Daily average aggregation (across all lines)
         daily_averages_map = {} # {date: {total, pass}}
+
+        # Overall failure details aggregation
+        overall_fail_details = {"models": {}, "steps": {}}
         
         for sheet in sheet_names:
-            # Skip empty or non-data sheets
-            if sheet in ['0317', '0318']:
-                continue
-                
+            
             print(f"Processing sheet: {sheet}")
             df = pd.read_excel(xl, sheet_name=sheet)
             
@@ -54,6 +54,19 @@ def process_file():
             overall_total += total_rows
             overall_g += g_count
             overall_n += (total_rows - g_count)
+
+            # Overall failure aggregation
+            if 'RESULT' in df.columns and total_rows > g_count:
+                nf_overall = df[df['RESULT'] == 'N']
+                for _, f_row in nf_overall.iterrows():
+                    m_name = str(f_row.get('MAT_NM', 'Unknown'))
+                    overall_fail_details["models"][m_name] = overall_fail_details["models"].get(m_name, 0) + 1
+                    
+                    for i in range(1, 11):
+                        cid_col = f'CHAR_ID_{i:02d}'
+                        if cid_col in f_row and pd.notna(f_row[cid_col]):
+                            step_name = str(f_row[cid_col])
+                            overall_fail_details["steps"][step_name] = overall_fail_details["steps"].get(step_name, 0) + 1
             
             if 'LINE_ID' not in df.columns:
                 continue
@@ -275,7 +288,11 @@ def process_file():
                 "total": int(overall_total),
                 "pass": int(overall_g),
                 "fail": int(overall_n),
-                "pass_rate": round((overall_g / (overall_g + overall_n) * 100) if (overall_g + overall_n) > 0 else 0, 1)
+                "pass_rate": round((overall_g / (overall_g + overall_n) * 100) if (overall_g + overall_n) > 0 else 0, 1),
+                "fail_details": {
+                    "models": overall_fail_details["models"],
+                    "steps": dict(sorted(overall_fail_details["steps"].items(), key=lambda x: x[1], reverse=True)[:20]) # Top 20 overall
+                }
             },
             "daily_averages": daily_averages,
             "lines": final_lines
