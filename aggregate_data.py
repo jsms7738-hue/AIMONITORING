@@ -1,9 +1,16 @@
 import json
 import os
+import sys
 from datetime import datetime
 
-# Paths to the other projects
-BASE_DIR = r'c:\Users\yoonh\Desktop\AI'
+# Determine BASE_DIR relative to this script's location (SMPS_MONITORING is inside AI)
+if getattr(sys, 'frozen', False):
+    CURRENT_DIR = os.path.dirname(sys.executable)
+else:
+    CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+BASE_DIR = os.path.dirname(CURRENT_DIR)
+
 PROJECTS = {
     "PBA": os.path.join(BASE_DIR, "PBA 생산 결과", "data", "data.json"),
     "ICT": os.path.join(BASE_DIR, "ICT데이타", "data", "data.json"),
@@ -97,7 +104,7 @@ def aggregate():
     }
     
     # Save the aggregated data
-    output_dir = os.path.join(BASE_DIR, "SMPS_MONITORING", "data")
+    output_dir = os.path.join(CURRENT_DIR, "data")
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, "aggregated_data.json")
     

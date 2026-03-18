@@ -1,8 +1,13 @@
 import os
+import sys
 import json
 import aggregate_data
 
-BASE_DIR = r'c:\Users\yoonh\Desktop\AI\SMPS_MONITORING'
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    
 TEMPLATE_PATH = os.path.join(BASE_DIR, "main_dashboard_template.html")
 OUTPUT_PATH = os.path.join(BASE_DIR, "smps_dashboard.html")
 
