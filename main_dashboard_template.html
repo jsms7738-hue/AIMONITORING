@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMPS MONITORING MANAGEMENT</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0a0a0a;
+            --bg-card: #141414;
+            --accent: #007aff;
+            --accent-glow: rgba(0, 122, 255, 0.3);
+            --text-main: #ffffff;
+            --text-dim: #a0a0a0;
+            --danger: #ff3b30;
+            --success: #34c759;
+            --warning: #ffcc00;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); overflow-x: hidden; }
+
+        /* Layout */
+        .dashboard-container { display: flex; height: 100vh; width: 100vw; }
+
+        /* Sidebar Left */
+        .sidebar-left {
+            width: 240px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .leader-section { text-align: center; margin-bottom: 20px; }
+        .leader-title { font-size: 1rem; font-weight: 800; margin-bottom: 10px; letter-spacing: 2px; }
+        .leader-frame {
+            width: 120px;
+            height: 140px;
+            background: #222;
+            border-radius: 12px;
+            margin: 0 auto;
+            border: 2px solid var(--border);
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .selector-box { margin-top: 15px; background: var(--glass); padding: 10px; border-radius: 12px; border: 1px solid var(--border); }
+        .selector-title { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px; }
+        .month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .date-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; max-height: 180px; overflow-y: auto; }
+        .btn-select {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-select.active { background: var(--accent); border-color: var(--accent); }
+
+        /* Main Content Center */
+        .main-content {
+            flex: 1;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow: hidden;
+            background: radial-gradient(circle at top right, rgba(0,122,255,0.05), transparent);
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--text-main); padding-bottom: 8px; }
+        .main-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
+        .header-meta { text-align: right; }
+        .line-info { font-size: 0.9rem; font-weight: 600; }
+        .date-info { color: var(--text-dim); font-size: 0.8rem; }
+
+        .charts-row { display: grid; grid-template-columns: 7fr 3fr; gap: 12px; flex: 1.5; min-height: 0; }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; position: relative; display: flex; flex-direction: column; }
+        .card-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .card-title::before { content: ''; width: 10px; height: 10px; background: var(--warning); border-radius: 2px; }
+
+        .chart-container { flex: 1; min-height: 0; width: 100%; }
+
+        .model-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        .model-table th { text-align: left; padding: 6px 8px; color: var(--text-dim); border-bottom: 1px solid var(--border); }
+        .model-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+        .table-scroll { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; }
+
+        .mini-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+        .mini-title { font-size: 0.8rem; color: var(--text-dim); font-weight: 800; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 6px; width: fit-content; border: 1px solid var(--border); }
+        .mini-grid { display: flex; flex-direction: column; height: 100%; gap: 10px; }
+        .mini-chart { flex: 1.2; min-height: 0; position: relative; width: 100%; }
+        
+        /* Bottom Tables Row */
+        .bottom-tables-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; flex: 2; min-height: 0; }
+        
+        .mini-table { font-size: 0.65rem; width: 100%; border-collapse: collapse; }
+        .mini-table th { padding: 3px; background: var(--border); color: var(--text-dim); }
+        .mini-table td { padding: 3px; text-align: center; border-bottom: 1px solid var(--border); }
+
+        /* Utils */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .accent-text { color: var(--accent); font-weight: 800; }
+        .danger-text { color: var(--danger); font-weight: 800; }
+
+        /* Detail Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--bg-main); border: 2px solid var(--border); border-radius: 16px; padding: 25px; width: 650px; max-width: 90%; max-height: 80vh; display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+        .modal-title { font-size: 1.2rem; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+        .modal-title::before { content: ''; width: 6px; height: 18px; background: var(--warning); display: block; border-radius: 2px; }
+        .modal-close { background: none; border: none; color: var(--text-dim); font-size: 1.8rem; cursor: pointer; transition: 0.2s; line-height: 1; }
+        .modal-close:hover { color: var(--danger); }
+        .modal-body { overflow-y: auto; flex: 1; padding-right: 5px; }
+        .modal-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .modal-table th { text-align: left; padding: 12px; background: rgba(255,255,255,0.05); color: var(--text-main); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; font-weight: 600; }
+        .modal-table td { padding: 12px; border-bottom: 1px solid var(--border); color: #ddd; }
+        .modal-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Left -->
+        <aside class="sidebar-left">
+            <div class="leader-section">
+                <div class="leader-title">LEADER</div>
+                <div class="leader-frame"></div>
+            </div>
+
+            <div class="selector-box">
+                <div class="selector-title">조장라인명</div>
+                <div class="month-grid" id="line-grid">
+                    <!-- Dynamic -->
+                </div>
+            </div>
+
+            <div class="selector-box">
+                <div class="selector-title">[ 월/일 단위 현황 지표 확인 ]</div>
+                <div class="selector-title">Months</div>
+                <div class="month-grid" id="month-grid">
+                    <!-- Dynamic -->
+                </div>
+            </div>
+
+            <div class="selector-box">
+                <div class="selector-title">작업일자 ◇</div>
+                <div class="date-grid" id="date-grid">
+                    <!-- Dynamic -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <div class="main-title">SMPS MONITORING MANAGEMENT</div>
+                <div class="header-meta">
+                    <div class="line-info">LINE명 : <span id="active-line-name">A LINE</span></div>
+                    <div class="date-info">DATE : <span id="active-date-display">2026/03/18</span></div>
+                </div>
+            </header>
+
+            <div class="charts-row">
+                <div class="card">
+                    <div class="card-title">일별 작업 공수 효율%</div>
+                    <div class="chart-container">
+                        <canvas id="efficiency-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Time당 생산 실적</div>
+                    <div class="chart-container">
+                        <canvas id="hourly-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="flex: 1; min-height: 0;">
+                <div class="card-title">생산 제품 정보</div>
+                <div class="table-scroll">
+                    <table class="model-table" id="model-table">
+                        <thead>
+                            <tr>
+                                <th>모델명</th>
+                                <th>완제품코드</th>
+                                <th>모델ST</th>
+                                <th>투입인원</th>
+                                <th>생산수량</th>
+                                <th>효율(%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bottom-tables-row">
+                <div class="mini-card">
+                    <div class="mini-title">ICT 시간대별 분석 추이</div>
+                    <div class="mini-grid">
+                        <div class="mini-chart"><canvas id="ict-chart"></canvas></div>
+                        <table class="mini-table" id="ict-mini-table">
+                            <thead><tr><th>날짜</th><th>전체</th><th>불량</th><th>직행</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mini-card">
+                    <div class="mini-title">WI 시간대별 분석 추이</div>
+                    <div class="mini-grid">
+                        <div class="mini-chart"><canvas id="wi-chart"></canvas></div>
+                        <table class="mini-table" id="wi-mini-table">
+                            <thead><tr><th>날짜</th><th>전체</th><th>불량</th><th>직행</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mini-card">
+                    <div class="mini-title">FT1 시간대별 분석 추이</div>
+                    <div class="mini-grid">
+                        <div class="mini-chart"><canvas id="ft1-chart"></canvas></div>
+                        <table class="mini-table" id="ft1-mini-table">
+                            <thead><tr><th>날짜</th><th>전체</th><th>불량</th><th>직행</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Defect Details Modal -->
+        <div class="modal-overlay" id="defect-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="modal-title-text">ICT 불량 상세 내역 (A LINE)</div>
+                    <button class="modal-close" onclick="closeDefectModal()">×</button>
+                </div>
+                <div class="modal-body">
+                    <table class="modal-table">
+                        <thead>
+                            <tr>
+                                <th width="50%">모델명</th>
+                                <th width="35%">불량 발생 내역 (Step)</th>
+                                <th width="15%" style="text-align: right;">수량(EA)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const rawData = {{AGGREGATED_DATA_JSON}};
+        let currentMonth = "3월";
+        let currentDate = "";
+        let currentLine = "MPDA"; // Base line ID (PBA/FT1 style)
+
+        // Mapping for projects using 2A/2B style (ICT, WI)
+        const lineMapping = {
+            "MPDA": "2A", "MPDB": "2B", "MPDC": "2C", "MPDD": "2D",
+            "MPDE": "2E", "MPDF": "2F", "MPDG": "2G", "MPH": "2H", "MPI": "2I"
+        };
+
+        const id = (s) => document.getElementById(s);
+        
+        // Register the datalabels plugin globally for Chart.js v3
+        Chart.register(ChartDataLabels);
+
+        function init() {
+            renderLineGrid();
+            renderMonthGrid();
+            selectLine(currentLine);
+        }
+
+        function renderLineGrid() {
+            const lines = ["MPDA", "MPDB", "MPDC", "MPDD", "MPDE", "MPDF", "MPDG", "MPDH", "MPDI"];
+            const grid = id('line-grid');
+            grid.innerHTML = lines.map(l => {
+                const label = l.replace('MPD', '').replace('MP', '') + " LINE";
+                return `<button class="btn-select ${l === currentLine ? 'active' : ''}" onclick="selectLine('${l}')">${label}</button>`;
+            }).join('');
+        }
+
+        function selectLine(l) {
+            currentLine = l;
+            document.querySelectorAll('#line-grid .btn-select').forEach(b => {
+                const isActive = b.getAttribute('onclick').includes(l);
+                b.classList.toggle('active', isActive);
+            });
+            const label = l.replace('MPD', '').replace('MP', '') + " LINE";
+            id('active-line-name').innerText = label;
+            
+            // Set Leader Photo (A/B LINE)
+            const leaderFrame = document.querySelector('.leader-frame');
+            if (l === 'MPDA') {
+                leaderFrame.style.backgroundImage = "url('assets/leaders/leader_a.png')";
+            } else if (l === 'MPDB') {
+                leaderFrame.style.backgroundImage = "url('assets/leaders/leader_b.png')";
+            } else if (l === 'MPDC') {
+                leaderFrame.style.backgroundImage = "url('assets/leaders/leader_c.png')";
+            } else if (l === 'MPDD') {
+                leaderFrame.style.backgroundImage = "url('assets/leaders/leader_d.png')";
+            } else if (l === 'MPDE') {
+                leaderFrame.style.backgroundImage = "url('assets/leaders/leader_e.png')";
+            } else if (l === 'MPDF') {
+                leaderFrame.style.backgroundImage = "url('assets/leaders/leader_f.png')";
+            } else if (l === 'MPDG') {
+                leaderFrame.style.backgroundImage = "url('assets/leaders/leader_g.png')";
+            } else if (l === 'MPDH') {
+                leaderFrame.style.backgroundImage = "url('assets/leaders/leader_h.png')";
+            } else if (l === 'MPDI') {
+                leaderFrame.style.backgroundImage = "url('assets/leaders/leader_i.png')";
+            } else {
+                leaderFrame.style.backgroundImage = "none";
+            }
+            
+            // Re-render date grid based on new line
+            selectMonth(currentMonth);
+            renderDashboard();
+        }
+
+        function renderMonthGrid() {
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const grid = id('month-grid');
+            grid.innerHTML = months.map(m => `<button class="btn-select ${m === 'Mar' ? 'active' : ''}" onclick="selectMonth('${m}')">${m}</button>`).join('');
+        }
+
+        function selectMonth(m) {
+            currentMonth = m;
+            // Filter dates based on month (simplified logic)
+            const pbaTrend = rawData.PBA.lines.find(l => l.line_id === currentLine)?.trend || [];
+            const dates = pbaTrend.map(t => t.date);
+            
+            const grid = id('date-grid');
+            grid.innerHTML = dates.map(d => `<button class="btn-select ${d === currentDate ? 'active' : ''}" onclick="selectDate('${d}')">${d}</button>`).join('');
+            
+            if (dates.length > 0 && !currentDate) selectDate(dates[dates.length - 1]);
+        }
+
+        function selectDate(d) {
+            currentDate = d;
+            document.querySelectorAll('#date-grid .btn-select').forEach(b => b.classList.toggle('active', b.innerText === d));
+            id('active-date-display').innerText = `2026 / ${d.replace('월 ', '/').replace('일', '')}`;
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            renderEfficiencyChart();
+            renderHourlyChart();
+            renderModelTable();
+            renderMiniDashboards();
+        }
+
+        function renderEfficiencyChart() {
+            const ctx = id('efficiency-chart').getContext('2d');
+            const lineData = rawData.PBA.lines.find(l => l.line_id === currentLine);
+            if (!lineData) return;
+
+            const trend = lineData.trend;
+            const labels = trend.map(t => t.date);
+            const qtyData = trend.map(t => t.total);
+            const effData = trend.map(t => t.efficiency);
+
+            if (window.effChart) window.effChart.destroy();
+            window.effChart = new Chart(ctx, {
+                type: 'bar',
+                plugins: [ChartDataLabels],
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: '생산수량(EA)', data: qtyData, backgroundColor: 'rgba(0,122,255,0.6)', yAxisID: 'y' },
+                        { label: '공수효율(%)', data: effData, type: 'line', borderColor: '#ffcc00', borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#ffcc00', yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 20 } },
+                    plugins: { 
+                        legend: { position: 'top', align: 'end', labels: { color: '#fff', boxWidth: 10 } },
+                        datalabels: {
+                            display: (context) => context.dataset.label === '공수효율(%)',
+                            color: '#ffcc00',
+                            align: 'top',
+                            anchor: 'end',
+                            offset: 4,
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (v) => Number(v).toFixed(1) + '%'
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { size: 10 } } },
+                        y: { type: 'linear', position: 'left', grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y1: { type: 'linear', position: 'right', max: 200, grid: { display: false }, ticks: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderHourlyChart() {
+            const ctx = id('hourly-chart').getContext('2d');
+            const lineData = rawData.PBA.lines.find(l => l.line_id === currentLine);
+            if (!lineData) return;
+
+            const dayTrend = lineData.hourly_trend.filter(h => h.time_slot.includes(currentDate));
+            const labels = ["A", "B", "C", "D", "E"];
+            const mapping = { "A": "A(08", "B": "B(10", "C": "C(13", "D": "D(15", "E": "E(17" };
+            
+            const dataValues = labels.map(l => {
+                const match = dayTrend.find(h => h.time_slot.includes(mapping[l]));
+                return match ? match.total : 0;
+            });
+
+            if (window.hourChart) window.hourChart.destroy();
+            window.hourChart = new Chart(ctx, {
+                type: 'bar',
+                plugins: [ChartDataLabels],
+                data: {
+                    labels: labels,
+                    datasets: [{ data: dataValues, backgroundColor: 'rgba(120,80,255,0.7)', borderRadius: 6 }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 25 } },
+                    plugins: { 
+                        legend: { display: false }, 
+                        datalabels: { 
+                            display: true, 
+                            color: '#fff', 
+                            anchor: 'end', 
+                            align: 'top',
+                            offset: 2,
+                            font: { weight: 'bold', size: 11 },
+                            formatter: (v) => v > 0 ? v.toLocaleString() : ''
+                        } 
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { display: false }
+                    }
+                }
+            });
+        }
+
+        function renderModelTable() {
+            const lineData = rawData.PBA.lines.find(l => l.line_id === currentLine);
+            const dayData = lineData.trend.find(t => t.date === currentDate);
+            const tbody = id('model-table').querySelector('tbody');
+            
+            if (!dayData) { tbody.innerHTML = ''; return; }
+
+            tbody.innerHTML = dayData.model_stats.map(m => `
+                <tr>
+                    <td>${m.name}</td>
+                    <td>${m.code}</td>
+                    <td>${m.st}</td>
+                    <td>${m.manpower}</td>
+                    <td class="accent-text">${m.total.toLocaleString()}</td>
+                    <td class="accent-text">${m.efficiency}%</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderMiniDashboards() {
+            ['ICT', 'WI', 'FT1'].forEach(type => {
+                // Map the line ID if necessary
+                const targetLineId = (type === 'ICT' || type === 'WI') ? (lineMapping[currentLine] || currentLine) : currentLine;
+                
+                const projectData = rawData[type];
+                if (!projectData) return;
+
+                const lineData = projectData.lines.find(l => l.line_id === targetLineId);
+                const table = id(`${type.toLowerCase()}-mini-table`).querySelector('tbody');
+                const canvas = id(`${type.toLowerCase()}-chart`);
+                
+                if (!lineData) {
+                    table.innerHTML = '<tr><td colspan="4" style="color:#666; padding:20px;">데이터 없음</td></tr>';
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0,0, canvas.width, canvas.height);
+                    return;
+                }
+                
+                // Mini Table
+                const recentTrend = lineData.trend.slice(-5).reverse();
+                table.innerHTML = recentTrend.map(t => `
+                    <tr>
+                        <td>${t.date.split(' ')[1]}</td>
+                        <td>${t.total}</td>
+                        <td class="danger-text" style="cursor: pointer; text-decoration: underline;" onclick="openDefectModal('${type}', '${targetLineId}', '${t.date}')" title="상세 내역 확인">${t.total - t.pass}</td>
+                        <td class="${t.pass_rate >= 99 ? 'accent-text' : 'danger-text'}">${t.pass_rate}%</td>
+                    </tr>
+                `).join('');
+
+                // Mini Chart
+                const ctx = canvas.getContext('2d');
+                // Filter hourly_trend by selected date
+                const dayHourly = (lineData.hourly_trend || []).filter(h => h.time_slot.includes(currentDate));
+                
+                // Extract slots (e.g., "A", "B", "C" or "(08:00~10:00)")
+                const labels = dayHourly.map(h => {
+                    const match = h.time_slot.match(/\((.*?)\)/); // Try for bracketed time
+                    if (match) return match[1];
+                    const parts = h.time_slot.split(' ');
+                    return parts[parts.length - 1]; // Fallback to last word
+                });
+                const effs = dayHourly.map(h => h.pass_rate);
+
+                if (window[`${type}Chart`]) window[`${type}Chart`].destroy();
+                window[`${type}Chart`] = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{ 
+                            data: effs, 
+                            backgroundColor: 'rgba(0,122,255,0.7)', 
+                            borderRadius: 4,
+                            categoryPercentage: 0.8,
+                            barPercentage: 0.9
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        layout: { padding: { top: 15 } },
+                        interaction: { intersect: false, mode: 'index' },
+                        plugins: { 
+                            legend: { display: false }, 
+                            datalabels: { 
+                                display: true,
+                                anchor: 'end',
+                                align: 'top',
+                                offset: 2,
+                                font: { size: 9, weight: 'bold' },
+                                color: '#007aff',
+                                formatter: (v) => v > 0 ? v.toFixed(1) + '%' : ''
+                            } 
+                        },
+                        scales: { 
+                            x: { display: dayHourly.length > 0, grid: { display: false }, ticks: { font: { size: 8 }, color: '#666' } }, 
+                            y: { min: 90, max: 100, display: true, ticks: { display: false }, grid: { display: false } } 
+                        }
+                    }
+                });
+            });
+        }
+
+        // Modal Functions
+        function openDefectModal(projectType, lineId, dateStr) {
+            const projectData = rawData[projectType];
+            if (!projectData) return;
+            const lineData = projectData.lines.find(l => l.line_id === lineId);
+            if (!lineData) return;
+
+            let titleLabel = lineId;
+            const revMap = Object.entries(lineMapping).find(([k, v]) => v === lineId);
+            if (revMap) {
+               titleLabel = revMap[0].replace('MPD', '').replace('MP', '') + " LINE";
+            } else {
+               titleLabel = lineId.replace('MPD', '').replace('MP', '') + " LINE";
+            }
+            
+            const tbody = id('modal-tbody');
+            let html = '';
+            
+            // Try to find daily specific fail_details
+            let dayData = null;
+            if (dateStr && lineData.trend) {
+                dayData = lineData.trend.find(t => t.date === dateStr);
+            }
+
+            if (dayData && dayData.fail_details && (Object.keys(dayData.fail_details.models).length > 0 || Object.keys(dayData.fail_details.steps).length > 0)) {
+                // Show Daily Format (FT1, WI style)
+                id('modal-title-text').innerHTML = `[ <span style="color:#fff;">${projectType}</span> ] 일간 불량 상세 내역 <span style="font-size: 0.9em; color: var(--text-dim);">(${titleLabel} - ${dateStr})</span>`;
+                
+                const models = dayData.fail_details.models || {};
+                const steps = dayData.fail_details.steps || {};
+                
+                // For daily details, models and steps are unfortunately independent dictionaries in the extracted data.
+                // We'll list models first, then steps below them to show the distribution.
+                html += `<tr><td colspan="3" style="background:rgba(255,255,255,0.05); color:var(--accent); font-weight:bold; text-align:center;">▶ 불량 발생 모델 분포</td></tr>`;
+                Object.entries(models).forEach(([mName, count]) => {
+                    html += `<tr>
+                        <td colspan="2" style="color: #bbb;">${mName}</td>
+                        <td class="danger-text" style="text-align: right;">${count}</td>
+                    </tr>`;
+                });
+                
+                html += `<tr><td colspan="3" style="background:rgba(255,255,255,0.05); color:var(--warning); font-weight:bold; text-align:center;">▶ 발생 공정 (Step) 분석</td></tr>`;
+                Object.entries(steps).forEach(([sName, count]) => {
+                    html += `<tr>
+                        <td colspan="2" style="color: var(--warning); padding-left: 20px;">- ${sName}</td>
+                        <td class="danger-text" style="text-align: right;">${count}</td>
+                    </tr>`;
+                });
+
+            } else if (lineData.fail_steps) {
+                // Show Monthly (Line-level) Format (ICT style)
+                id('modal-title-text').innerHTML = `[ <span style="color:#fff;">${projectType}</span> ] 월간 누적 불량 집계 <span style="font-size: 0.9em; color: var(--text-dim);">(${titleLabel})</span>`;
+                
+                const models = Object.keys(lineData.fail_steps);
+                if (models.length === 0) {
+                    html = '<tr><td colspan="3" style="text-align: center; color: var(--text-dim); padding: 30px;">이번 달 누적 불량 내역이 없습니다.</td></tr>';
+                } else {
+                    models.forEach(model => {
+                        const steps = lineData.fail_steps[model];
+                        if (steps && steps.length > 0) {
+                            steps.forEach((s, idx) => {
+                                html += `
+                                    <tr>
+                                        ${idx === 0 ? `<td rowspan="${steps.length}" style="color: #bbb; border-right: 1px solid rgba(255,255,255,0.05); vertical-align: middle;">${model}</td>` : ''}
+                                        <td style="color: var(--warning);">${s.step}</td>
+                                        <td class="danger-text" style="text-align: right; font-size: 0.9rem;">${s.count}</td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                    });
+                }
+            } else {
+                id('modal-title-text').innerHTML = `[ <span style="color:#fff;">${projectType}</span> ] 불량 상세 내역 <span style="font-size: 0.9em; color: var(--text-dim);">(${titleLabel})</span>`;
+                html = '<tr><td colspan="3" style="text-align: center; color: var(--text-dim); padding: 30px;">상세 불량 내역(fail_details) 데이터가 서버에 존재하지 않습니다.<br>해당 일자에 불량이 없거나 데이터 로깅이 누락되었을 수 있습니다.</td></tr>';
+            }
+            
+            if (html === '') {
+                 html = '<tr><td colspan="3" style="text-align: center; color: var(--text-dim); padding: 30px;">표시할 데이터가 없습니다.</td></tr>';
+            }
+            
+            tbody.innerHTML = html;
+            id('defect-modal').style.display = 'flex';
+        }
+
+        function closeDefectModal() {
+            id('defect-modal').style.display = 'none';
+        }
+
+        // Close when clicking outside the modal content
+        window.onclick = function(event) {
+            const modal = id('defect-modal');
+            if (event.target === modal) {
+                closeDefectModal();
+            }
+        }
+
+
+        init();
+    </script>
+</body>
+</html>
