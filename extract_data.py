@@ -78,8 +78,9 @@ def process_file():
                 ldf = df[df['LINE_ID'] == line]
                 
                 if line not in lines_summary:
+                    line_id_normalized = str(line).upper()  # Normalize to uppercase (2i -> 2I)
                     lines_summary[line] = {
-                        "line_id": str(line),
+                        "line_id": line_id_normalized,
                         "total": 0,
                         "pass": 0,
                         "fail": 0,

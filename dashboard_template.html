@@ -681,23 +681,30 @@
                             ${line.pass_rate}%
                         </div>
                     </div>
-                    <div style="height: 60px;"><canvas id="mini-chart-${idx}"></canvas></div>
+                    <div style="height: 80px; margin-top: 0.5rem;"><canvas id="mini-chart-${idx}"></canvas></div>
                 `;
                 grid.appendChild(card);
                 new Chart(id(`mini-chart-${idx}`).getContext('2d'), {
-                    type: 'line',
+                    type: 'doughnut',
                     data: {
-                        labels: line.trend.map(d => d.date),
+                        labels: ['Pass', 'Remainder'],
                         datasets: [{
-                            data: line.trend.map(d => d.pass_rate),
-                            borderColor: 'var(--primary)',
-                            tension: 0.4,
-                            pointRadius: 0,
-                            fill: true,
-                            backgroundColor: 'rgba(99, 102, 241, 0.05)'
+                            data: [line.pass_rate, Math.max(0, 100 - line.pass_rate)],
+                            backgroundColor: [line.pass_rate < 95 ? 'var(--danger)' : 'var(--primary)', 'rgba(0,0,0,0.05)'],
+                            borderWidth: 0,
+                            circumference: 360,
+                            rotation: 0
                         }]
                     },
-                    options: { maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } }, scales: { x: { display: false }, y: { display: false, min: 80, max: 105 } } }
+                    options: { 
+                        maintainAspectRatio: false, 
+                        cutout: '70%',
+                        plugins: { 
+                            legend: { display: false }, 
+                            datalabels: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    }
                 });
             });
 
@@ -738,26 +745,26 @@
             const yieldContainer = id('deep-dive-yield-card');
             const rate = line.pass_rate;
             yieldContainer.innerHTML = `
-                <div class="stat-card" style="padding: 0.8rem 1rem; display: flex; flex-direction: row; align-items: center; gap: 0.8rem; height: 100%; border-left: 4px solid ${rate < 95 ? 'var(--danger)' : 'var(--primary)'};">
-                    <div style="flex: 1; text-align: center;">
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.2rem; font-weight: 700;">ICT 직행율</p>
-                        <div style="font-size: 2.8rem; font-weight: 900; color: ${rate < 95 ? 'var(--danger)' : 'var(--primary)'}; line-height: 1;">
-                            ${rate}<span style="font-size: 1rem; color: var(--text-muted);">%</span>
+                <div class="stat-card" style="padding: 0; display: flex; flex-direction: row; align-items: stretch; gap: 0; height: 100%; border-left: 6px solid ${rate < 95 ? 'var(--danger)' : 'var(--primary)'}; overflow: hidden;">
+                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card-bg); padding: 1rem;">
+                        <div style="font-size: 1.6rem; font-weight: 900; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -1px; text-align: center;">ICT 직행율</div>
+                        <div style="font-size: 3.8rem; font-weight: 900; color: ${rate < 95 ? 'var(--danger)' : 'var(--primary)'}; line-height: 1; letter-spacing: -2px;">
+                            ${rate}<span style="font-size: 1.4rem; color: var(--text-muted); margin-left: -2px;">%</span>
                         </div>
                     </div>
-                    <div style="width: 1px; background: var(--table-border); height: 60%;"></div>
-                    <div style="flex: 1.3; display: flex; flex-direction: column; gap: 0.3rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-                            <span style="color:var(--text-muted)">전체생산:</span>
-                            <b style="color:var(--text-main)">${line.total.toLocaleString()}</b>
+                    <div style="width: 1px; background: var(--table-border); height: 100%;"></div>
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 0.5rem; padding: 1rem 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 2px;">
+                            <span style="color:var(--text-muted); font-weight: 600;">전체생산:</span>
+                            <b style="color:var(--text-main); font-size: 1.1rem;">${line.total.toLocaleString()}</b>
                         </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-                            <span style="color:var(--success)">합격(G):</span>
-                            <b style="color:var(--success)">${line.pass.toLocaleString()}</b>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 2px;">
+                            <span style="color:var(--success); font-weight: 600;">합격(G):</span>
+                            <b style="color:var(--success); font-size: 1.1rem;">${line.pass.toLocaleString()}</b>
                         </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-                            <span style="color:var(--danger)">불합격(N):</span>
-                            <b style="color:var(--danger)">${line.fail.toLocaleString()}</b>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                            <span style="color:var(--danger); font-weight: 600;">불합격(N):</span>
+                            <b style="color:var(--danger); font-size: 1.1rem;">${line.fail.toLocaleString()}</b>
                         </div>
                     </div>
                 </div>
