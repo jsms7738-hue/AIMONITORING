@@ -25,32 +25,49 @@ def process_file():
          # Daily average aggregation (across all lines)
         daily_averages_map = {} # {date: {total, pass}}
         
+        def get_date_from_ct(ct):
+            try:
+                ct_str = str(int(ct))
+                if len(ct_str) >= 8:
+                    month = int(ct_str[4:6])
+                    day = int(ct_str[6:8])
+                    return f"{month}월 {day}일"
+            except:
+                pass
+            return None
+
         for sheet in sheet_names:
             df = pd.read_excel(xl, sheet_name=sheet)
             
-            # Format sheet name as date (MMDD -> M월 D일)
-            display_sheet_name = sheet
-            if len(sheet) == 4 and sheet.isdigit():
-                display_sheet_name = f"{int(sheet[:2])}월 {int(sheet[2:])}일"
+            if 'CREATE_TIME' not in df.columns:
+                continue
 
-            # Basic stats
-            total_rows = len(df)
-            g_count = 0
+            # Add actual date column
+            df['actual_date'] = df['CREATE_TIME'].apply(get_date_from_ct)
+            
+            # If actual_date is missing, fall back to sheet name format
+            def format_sheet_name(s):
+                if len(s) == 4 and s.isdigit():
+                    return f"{int(s[:2])}월 {int(s[2:])}일"
+                return s
+            
+            df['actual_date'] = df['actual_date'].fillna(format_sheet_name(sheet))
+
+            # Group by actual date for daily averages
+            for d_str, gdf in df.groupby('actual_date'):
+                if d_str not in daily_averages_map:
+                    daily_averages_map[d_str] = {"total": 0, "pass": 0}
+                t_count = len(gdf)
+                p_count = (gdf['RESULT'] == 'G').sum() if 'RESULT' in gdf.columns else 0
+                daily_averages_map[d_str]["total"] += t_count
+                daily_averages_map[d_str]["pass"] += int(p_count)
+
+            overall_total += len(df)
             if 'RESULT' in df.columns:
-                counts = df['RESULT'].value_counts()
-                g_count = int(counts.get('G', 0))
+                g_count = (df['RESULT'] == 'G').sum()
+                overall_g += int(g_count)
+                overall_n += (len(df) - int(g_count))
             
-            # Track for overall daily average
-            if display_sheet_name not in daily_averages_map:
-                daily_averages_map[display_sheet_name] = {"total": 0, "pass": 0}
-            daily_averages_map[display_sheet_name]["total"] += total_rows
-            daily_averages_map[display_sheet_name]["pass"] += g_count
-
-            overall_total += total_rows
-            overall_g += g_count
-            overall_n += (total_rows - g_count)
-            
-            # ... rest of the loop remains focused on line-centric until here ...
             if 'LINE_ID' not in df.columns:
                 continue
 
@@ -59,11 +76,7 @@ def process_file():
 
             for line in unique_lines:
                 ldf = df[df['LINE_ID'] == line]
-                l_total = len(ldf)
-                l_g = (ldf['RESULT'] == 'G').sum() if 'RESULT' in ldf.columns else 0
-                l_n = l_total - l_g
-                l_models = ldf['MAT_NM'].unique().tolist() if 'MAT_NM' in ldf.columns else []
-
+                
                 if line not in lines_summary:
                     lines_summary[line] = {
                         "line_id": str(line),
@@ -72,9 +85,14 @@ def process_file():
                         "fail": 0,
                         "models": set(),
                         "model_stats": {},  # {model_name: {total, pass, fail}}
-                        "trend": [],
+                        "trend_map": {},    # {date: {total, pass, fail}}
                         "fail_steps": {}    # {model: {step_name: count}}
                     }
+
+                l_total = len(ldf)
+                l_g = (ldf['RESULT'] == 'G').sum() if 'RESULT' in ldf.columns else 0
+                l_n = l_total - l_g
+                l_models = ldf['MAT_NM'].unique().tolist() if 'MAT_NM' in ldf.columns else []
 
                 lines_summary[line]["total"] += l_total
                 lines_summary[line]["pass"] += int(l_g)
@@ -114,52 +132,43 @@ def process_file():
 
                 def get_time_slot(ct):
                     try:
-                        # Assuming ct like 20260302080456 (YYYYMMDDHHMMSS)
                         ct_str = str(int(ct))
                         if len(ct_str) >= 14:
                             hour = int(ct_str[8:10])
                             minute = int(ct_str[10:12])
                             total_minutes = hour * 60 + minute
-                            
-                            # Custom intervals:
-                            # A-1: 06:00 ~ 07:59
                             if 6*60 <= total_minutes < 8*60: return "A-1(06:00~07:59)"
-                            # A: 08:00 ~ 10:00 (user specified 08:00~10:00, interpreting as 08:00~09:59 or inclusive of 10:00)
                             if 8*60 <= total_minutes <= 10*60: return "A(08:00~10:00)"
-                            # B: 10:10 ~ 12:00
                             if 10*60 + 10 <= total_minutes <= 12*60: return "B(10:10~12:00)"
-                            # C: 13:00 ~ 15:00
                             if 13*60 <= total_minutes <= 15*60: return "C(13:00~15:00)"
-                            # D: 15:10 ~ 17:00
                             if 15*60 + 10 <= total_minutes <= 17*60: return "D(15:10~17:00)"
-                            # E: 17:30 ~ 20:00
                             if 17*60 + 30 <= total_minutes <= 20*60: return "E(17:30~20:00)"
-                            
                             return f"기타({hour:02d}:{minute:02d})"
-                    except:
-                        pass
+                    except: pass
                     return "기타"
 
-                # Aggregate hourly trend per day
-                if 'CREATE_TIME' in ldf.columns:
-                    for _, row in ldf.iterrows():
-                        slot = get_time_slot(row['CREATE_TIME'])
-                        # If you want to skip '기타', you could do: if slot == '기타': continue 
-                        date_slot = f"{display_sheet_name} {slot}"
-                        ht = lines_summary[line]["hourly_trend"]
-                        if date_slot not in ht:
-                            ht[date_slot] = {"total": 0, "pass": 0, "fail": 0}
-                        ht[date_slot]["total"] += 1
-                        if str(row.get('RESULT', '')) == 'G': ht[date_slot]["pass"] += 1
-                        else: ht[date_slot]["fail"] += 1
+                # Aggregate hourly trend and daily trend for line
+                for d_str, gldf in ldf.groupby('actual_date'):
+                    # Daily Trend
+                    if d_str not in lines_summary[line]["trend_map"]:
+                        lines_summary[line]["trend_map"][d_str] = {"total": 0, "pass": 0, "fail": 0}
+                    lt = len(gldf)
+                    lc = (gldf['RESULT'] == 'G').sum() if 'RESULT' in gldf.columns else 0
+                    lines_summary[line]["trend_map"][d_str]["total"] += lt
+                    lines_summary[line]["trend_map"][d_str]["pass"] += int(lc)
+                    lines_summary[line]["trend_map"][d_str]["fail"] += int(lt - lc)
 
-                lines_summary[line]["trend"].append({
-                    "date": display_sheet_name,
-                    "total": l_total,
-                    "pass": int(l_g),
-                    "fail": int(l_n),
-                    "pass_rate": round((l_g / l_total * 100) if l_total > 0 else 0, 1)
-                })
+                    # Hourly Trend
+                    if 'CREATE_TIME' in gldf.columns:
+                        for _, row in gldf.iterrows():
+                            slot = get_time_slot(row['CREATE_TIME'])
+                            date_slot = f"{d_str} {slot}"
+                            ht = lines_summary[line]["hourly_trend"]
+                            if date_slot not in ht:
+                                ht[date_slot] = {"total": 0, "pass": 0, "fail": 0}
+                            ht[date_slot]["total"] += 1
+                            if str(row.get('RESULT', '')) == 'G': ht[date_slot]["pass"] += 1
+                            else: ht[date_slot]["fail"] += 1
 
         def parse_korean_date_key(d_str):
             try:
@@ -256,12 +265,22 @@ def process_file():
             ht_list.sort(key=lambda x: parse_time_slot_key(x['time_slot']))
             data["hourly_trend"] = ht_list
 
+            # Finalize trend from map
+            data["trend"] = []
+            tm = data.pop("trend_map", {})
+            for d_str in sorted(tm.keys(), key=parse_korean_date_key):
+                v = tm[d_str]
+                data["trend"].append({
+                    "date": d_str,
+                    "total": v["total"],
+                    "pass": v["pass"],
+                    "fail": v["fail"],
+                    "pass_rate": round((v["pass"] / v["total"] * 100) if v["total"] > 0 else 0, 1)
+                })
+
             # Weekly Trend Aggregation
             weekly_stats = {}
             for day_data in data["trend"]:
-                # Map back from "M월 D일" or find index in original sheet names
-                # Actually, it's easier to find the week during the main loop, 
-                # but let's just use the day_data["date"] which is "M월 D일"
                 try:
                     day_part = day_data["date"].split(" ")[1].replace("일", "")
                     day_int = int(day_part)
@@ -297,7 +316,9 @@ def process_file():
 
             final_lines.append(data)
 
+        import datetime
         final_data = {
+            "generated_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "overall": {
                 "total": int(overall_total),
                 "pass": int(overall_g),

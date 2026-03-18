@@ -403,6 +403,7 @@
                     <div>
                         <h1 id="sidebar-title" style="font-size: 1.1rem;">ICT Dashboard</h1>
                         <p id="sidebar-subtitle" style="font-size: 0.75rem;">Performance Metrics</p>
+                        <p id="last-update" style="font-size: 0.65rem; color: var(--text-muted); opacity: 0.8; margin-top: 2px;">Last Update: -</p>
                     </div>
                 </header>
 
@@ -544,6 +545,32 @@
                 <button class="modal-close" onclick="closeModal()">✕</button>
             </div>
             <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Update Guide Modal -->
+    <div class="modal-overlay" id="update-modal">
+        <div class="modal-box" style="width: min(500px, 90vw);">
+            <div class="modal-header">
+                <div class="modal-title">🔄 데이터 업데이트 안내</div>
+                <button class="modal-close" onclick="closeUpdateModal()">✕</button>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 1rem 0;">
+                <p style="margin-bottom: 1.5rem; line-height: 1.6;">
+                    최신 데이터를 반영하려면 폴더 내의<br>
+                    <b style="color: var(--primary); font-size: 1.1rem;">update_data_ict.bat</b><br>
+                    파일을 실행해 주세요.
+                </p>
+                <div style="background: var(--th-bg); padding: 1rem; border-radius: 12px; font-size: 0.85rem; text-align: left;">
+                    <p style="margin-bottom: 0.5rem; font-weight: 700;">실행 순서:</p>
+                    <ol style="margin-left: 1.5rem; color: var(--text-muted);">
+                        <li>탐색기에서 해당 폴더를 엽니다.</li>
+                        <li><b>update_data_ict.bat</b> 파일을 더블 클릭합니다.</li>
+                        <li>검은 창이 닫히면 이 화면을 새로고침합니다.</li>
+                    </ol>
+                </div>
+            </div>
+            <button onclick="closeUpdateModal()" style="padding: 0.8rem; border: none; background: var(--primary); color: white; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 1rem;">확인</button>
         </div>
     </div>
 
@@ -918,43 +945,46 @@
 
         async function triggerUpdate() {
             const btn = id('update-btn');
-            const icon = id('update-icon');
-            const status = id('update-status');
-            
             const btnDeep = id('deep-dive-update-btn');
+            const icon = id('update-icon');
             const iconDeep = id('update-icon-deep');
+            const status = id('update-status');
             const statusDeep = id('update-status-deep');
 
-            const setStatus = (msg, color) => {
-                if(status) { status.innerText = msg; status.style.color = color; status.style.display = 'block'; }
-                if(statusDeep) { statusDeep.innerText = msg; statusDeep.style.color = color; }
+            const setUI = (loading) => {
+                if (btn) btn.disabled = loading;
+                if (btnDeep) btnDeep.disabled = loading;
+                if (icon) icon.style.animation = loading ? 'spin 1s linear infinite' : '';
+                if (iconDeep) iconDeep.style.animation = loading ? 'spin 1s linear infinite' : '';
+                const msg = loading ? '데이터 추출 및 업데이트 중... (약 10~30초 소요)' : '';
+                if (status) { status.innerText = msg; status.style.display = loading ? 'block' : 'none'; }
+                if (statusDeep) { statusDeep.innerText = msg; }
             };
 
-            const toggleSpin = (isSpinning) => {
-                if(icon) icon.style.animation = isSpinning ? 'spin 1s linear infinite' : 'none';
-                if(iconDeep) iconDeep.style.animation = isSpinning ? 'spin 1s linear infinite' : 'none';
-                if(btn) btn.disabled = isSpinning;
-                if(btnDeep) btnDeep.disabled = isSpinning;
-            };
-
-            toggleSpin(true);
-            setStatus('Excel 데이터 분석 및 파일 생성 중...', 'var(--text-muted)');
+            setUI(true);
+            logger("Starting data update via API...");
 
             try {
-                const response = await fetch('/api/update', { method: 'POST' });
+                const response = await fetch('http://localhost:5000/api/update', { method: 'POST' });
                 const result = await response.json();
 
                 if (result.success) {
-                    setStatus('✅ 업데이트 완료! 곧 새로고침합니다.', 'var(--success)');
-                    setTimeout(() => location.reload(), 2000);
+                    logger("Update success! Reloading...");
+                    if (status) status.innerText = "업데이트 완료! 페이지를 새로고침합니다...";
+                    if (statusDeep) statusDeep.innerText = "업데이트 완료! 페이지를 새로고침합니다...";
+                    setTimeout(() => location.reload(), 1500);
                 } else {
-                    throw new Error(result.message || '업데이트 실패');
+                    throw new Error(result.message || "Update failed on server");
                 }
-            } catch (e) {
-                console.error(e);
-                setStatus('❌ 오류: ' + e.message, 'var(--danger)');
-                toggleSpin(false);
+            } catch (err) {
+                logger(`Update error: ${err.message}`);
+                alert(`업데이트 실패: ${err.message}\n관리자에게 문의하세요.`);
+                setUI(false);
             }
+        }
+
+        function closeUpdateModal() {
+            id('update-modal').classList.remove('open');
         }
 
         // CSS for spinning icon
@@ -969,6 +999,12 @@
 
         try {
             if (typeof rawData === 'undefined') throw new Error("Data Error");
+            
+            // Render Last Update
+            if (id('last-update') && rawData.generated_at) {
+                id('last-update').innerText = `Last Update: ${rawData.generated_at}`;
+            }
+
             initNavigation();
             if (typeof activeLineId !== 'undefined' && activeLineId !== null) renderDeepDive(activeLineId);
             else renderOverview();
