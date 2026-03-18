@@ -376,6 +376,41 @@
         }
         .date-btn:hover { background: var(--primary); color: white; }
         .date-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(99,102,241,0.3); }
+
+        .defect-list-container {
+            height: 125px;
+            overflow-y: auto;
+            margin-top: 0.5rem;
+            font-size: 0.65rem;
+            border-top: 1px solid var(--table-border);
+            padding-top: 0.5rem;
+            scrollbar-width: thin;
+        }
+        .defect-mini-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .defect-mini-table th {
+            text-align: left;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            padding: 2px;
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+            z-index: 1;
+            border-bottom: 1px solid var(--table-border);
+        }
+        .defect-mini-table td {
+            padding: 3px 2px;
+            border-bottom: 1px solid var(--table-border);
+            line-height: 1.2;
+        }
+        .defect-count {
+            color: var(--danger);
+            font-weight: 700;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -540,6 +575,39 @@ const allLineIds = ["MPDA", "MPDB", "MPDC", "MPDD", "MPDE", "MPDF", "MPDG", "MPD
         function logger(msg) { console.log(`[FT1_DASHBOARD] ${new Date().toLocaleTimeString()} - ${msg}`); }
         function id(n) { return document.getElementById(n); }
 
+        function truncateModelName(name) {
+            if (name.length > 22) return name.substring(0, 20) + '..';
+            return name;
+        }
+
+        function renderMiniDefectRows(trend) {
+            let html = '';
+            // 최신 불량부터 표시
+            const failEntries = [];
+            trend.slice().reverse().forEach(t => {
+                if (t.fail > 0 && t.fail_details && t.fail_details.models) {
+                    for (const [model, count] of Object.entries(t.fail_details.models)) {
+                        failEntries.push({ date: t.date, model, count });
+                    }
+                }
+            });
+
+            if (failEntries.length === 0) {
+                return '<tr><td colspan="3" style="text-align:center; padding: 20px 0; color: var(--text-muted); opacity:0.6;">불량 기록 없음</td></tr>';
+            }
+
+            failEntries.forEach(e => {
+                html += `
+                    <tr>
+                        <td style="white-space:nowrap; color: var(--text-muted);">${e.date}</td>
+                        <td title="${e.model}" style="font-weight:600; color:var(--text-main);">${truncateModelName(e.model)}</td>
+                        <td class="defect-count">${e.count}</td>
+                    </tr>
+                `;
+            });
+            return html;
+        }
+
         if (typeof Chart !== 'undefined') {
             Chart.register(ChartDataLabels);
             logger("Chart.js ready");
@@ -640,24 +708,22 @@ const allLineIds = ["MPDA", "MPDB", "MPDC", "MPDD", "MPDE", "MPDF", "MPDG", "MPD
                             ${line.pass_rate}%
                         </div>
                     </div>
-                    <div style="height: 60px;"><canvas id="mini-chart-${idx}"></canvas></div>
+                    <div class="defect-list-container">
+                        <table class="defect-mini-table">
+                            <thead>
+                                <tr>
+                                    <th>발생일자</th>
+                                    <th>모델명</th>
+                                    <th style="text-align:right;">수량</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${renderMiniDefectRows(line.trend)}
+                            </tbody>
+                        </table>
+                    </div>
                 `;
                 grid.appendChild(card);
-                new Chart(id(`mini-chart-${idx}`).getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: line.trend.map(d => d.date),
-                        datasets: [{
-                            data: line.trend.map(d => d.pass_rate),
-                            borderColor: 'var(--primary)',
-                            tension: 0.4,
-                            pointRadius: 0,
-                            fill: true,
-                            backgroundColor: 'rgba(99, 102, 241, 0.05)'
-                        }]
-                    },
-                    options: { maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } }, scales: { x: { display: false }, y: { display: false, min: 80, max: 105 } } }
-                });
             });
 
             const tbody = document.querySelector('#summary-table tbody');
