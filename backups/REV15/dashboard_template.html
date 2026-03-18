@@ -137,7 +137,6 @@
             gap: 0.5rem;
             padding: 0.5rem;
             overflow: hidden;
-            background: #f8fafc;
         }
 
         .sidebar {
@@ -164,15 +163,17 @@
         }
 
         header h1 {
-            font-size: 1.2rem;
-            color: #6366f1;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 0.2rem;
-            font-weight: 800;
         }
 
         header p {
             color: var(--text-muted);
-            font-size: 0.8rem;
+            font-size: clamp(0.75rem, 1.5vw, 0.85rem);
         }
 
         .stat-card {
@@ -252,27 +253,6 @@
         }
 
         th { background: var(--th-bg); color: var(--text-muted); font-weight: 600; }
-
-        /* === SUMMARY TABLE (FT1 Overview) === */
-        #summary-table th {
-            background: #f1f5f9;
-            color: #475569;
-            font-weight: 700;
-            padding: 10px;
-            text-align: center;
-            font-size: 0.85rem;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        #summary-table td {
-            padding: 10px;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: 0.9rem;
-            vertical-align: middle;
-        }
-        #summary-table td:first-child { font-weight: 700; color: #4338ca; text-align: left; }
-        #summary-table td:nth-child(2) { text-align: center; font-weight: 600; color: #334155; }
-        #summary-table td:last-child { text-align: right; font-weight: 800; color: #10b981; }
-        #summary-table tr:hover { background: #f8fafc; }
 
         footer {
             margin-top: auto;
@@ -482,18 +462,15 @@
                     </div>
                 </div>
 
-                <div class="stat-card compact" id="summary-card" style="margin-top: 0; min-height: 180px; flex-shrink: 0; overflow: hidden; display: flex; flex-direction: column; padding: 0;">
-                    <div style="padding: 0.8rem 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-size: 1.1rem;">📊</span>
-                        <h2 id="summary-title" style="margin:0; color: #4338ca; font-size: 1rem; font-weight: 800;">상세 요약</h2>
-                    </div>
+                <div class="stat-card compact" id="summary-card" style="margin-top: 0; min-height: 150px; flex-shrink: 0; overflow: hidden; display: flex; flex-direction: column; padding: 0.8rem 1.25rem;">
+                    <h2 id="summary-title" style="flex-shrink:0; margin-bottom: 0.5rem; color: var(--primary); font-size: 0.9rem;">📊 상세 요약</h2>
                     <div style="flex: 1; overflow-y: auto; min-height: 0;">
-                        <table id="summary-table" style="width: 100%; border-collapse: collapse;">
+                        <table id="summary-table">
                             <thead>
                                 <tr>
-                                    <th id="th-line" style="width: 30%;">라인</th>
-                                    <th id="th-total" style="width: 40%;">전체</th>
-                                    <th id="th-rate" style="width: 30%;">직행율</th>
+                                    <th id="th-line">라인</th>
+                                    <th id="th-total">전체</th>
+                                    <th id="th-rate">직행율</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -654,18 +631,18 @@
             const rate = data.pass_rate;
             
             area.innerHTML = `
-                <div class="stat-card" style="padding: 1.2rem 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 240px; text-align: center; border: 1px solid #e2e8f0;">
-                    <div style="font-size: 0.95rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 700;">FT1 직행율</div>
-                    <div style="font-size: 5.5rem; font-weight: 950; line-height: 1; color: #4338ca; margin: 0.5rem 0; letter-spacing: -3px; display: flex; align-items: baseline; justify-content: center;">
-                        ${rate}<span style="font-size: 1.8rem; font-weight: 700; color: #94a3b8; margin-left: 2px;">%</span>
+                <div class="stat-card" style="padding: 1.5rem 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 240px; text-align: center;">
+                    <h3 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.8rem; font-weight: 700; width: 100%;">FT1 직행율</h3>
+                    <div style="font-size: 4.8rem; font-weight: 900; line-height: 1; color: ${rate < 95 ? 'var(--danger)' : 'var(--primary)'}; margin: 0.5rem 0; letter-spacing: -2px;">
+                        ${rate}<span style="font-size: 1.5rem; font-weight: 700; color: var(--text-muted); margin-left: 2px;">%</span>
                     </div>
-                    <div style="width: 100%; border-top: 1px solid #f1f5f9; padding-top: 1.2rem; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem;">
+                    <div style="width: 100%; border-top: 1px solid var(--table-border); padding-top: 1.2rem; margin-top: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.95rem; padding: 0 0.5rem;">
-                            <span style="color: #64748b; font-weight: 500;">전체 생산</span><span style="font-weight:800; color: #1e293b;">${data.total.toLocaleString()}</span>
+                            <span style="color: var(--text-muted);">전체 생산</span><span style="font-weight:800;">${data.total.toLocaleString()}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.95rem; padding: 0 0.5rem;">
-                            <span style="color: #64748b; font-weight: 500;">합격 / 불합격</span>
-                            <span><span style="color:#10b981; font-weight:800;">${data.pass.toLocaleString()}</span> / <span style="color:#ef4444; font-weight:800;">${data.fail.toLocaleString()}</span></span>
+                            <span style="color: var(--text-muted);">합격 / 불합격</span>
+                            <span><span style="color:var(--success); font-weight:800;">${data.pass.toLocaleString()}</span> / <span style="color:var(--danger); font-weight:800;">${data.fail.toLocaleString()}</span></span>
                         </div>
                     </div>
                 </div>
@@ -689,9 +666,8 @@
                     labels: rawData.daily_averages.map(d => d.date),
                     datasets: [{
                         data: rawData.daily_averages.map(d => d.pass_rate),
-                        backgroundColor: '#818cf8',
-                        borderRadius: 6,
-                        barThickness: 35
+                        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                        borderRadius: 4
                     }]
                 },
                 options: {
@@ -705,11 +681,11 @@
                             align: 'top', 
                             offset: 2,
                             font: { 
-                                size: 13, 
-                                weight: 800
+                                size: 12, 
+                                weight: 'bold'
                             }, 
                             formatter: (v) => v + '%',
-                            color: '#1e293b'
+                            color: '#000000'
                         }
                     },
                     scales: { 
@@ -726,8 +702,8 @@
                 card.onclick = () => window.location.href = `dashboard_${line.line_id}.html`;
                 card.innerHTML = `
                     <div class="sheet-header">
-                        <div class="sheet-title" style="color:#4338ca; font-weight:800;">Line ${line.line_id}</div>
-                        <div class="badge" style="background:${line.pass_rate < 95 ? '#fee2e2':'#dcfce7'}; color:${line.pass_rate < 95 ? '#991b1b':'#166534'}; font-weight:700;">
+                        <div class="sheet-title">Line ${line.line_id}</div>
+                        <div class="badge" style="background:${line.pass_rate < 95 ? '#fee2e2':'#d1fae5'}; color:${line.pass_rate < 95 ? '#991b1b':'#065f46'}">
                             ${line.pass_rate}%
                         </div>
                     </div>
