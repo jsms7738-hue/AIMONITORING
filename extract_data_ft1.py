@@ -1,6 +1,8 @@
 import pandas as pd
 import json
 import os
+import shutil
+import time
 
 # Get the directory where the script is located
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -11,9 +13,35 @@ if not os.path.exists(output_dir):
 json_path = os.path.join(output_dir, "data.json")
 
 def process_file():
+    temp_xl_path = None
     try:
-        xl = pd.ExcelFile(file_path)
+        # Ignore temporary Excel files created by Excel itself (~$...)
+        if os.path.basename(file_path).startswith("~$"):
+            print(f"Skipping temporary file: {file_path}")
+            return
+
+        if not os.path.exists(file_path):
+            print(f"Error: File not found: {file_path}")
+            return
+
+        # Handle File Locking (PermissionError) by creating a temporary copy
+        temp_xl_path = file_path + f".{int(time.time())}.tmp"
+        try:
+            shutil.copy2(file_path, temp_xl_path)
+            xl = pd.ExcelFile(temp_xl_path)
+        except PermissionError:
+            print(f"Warning: File is locked. Retrying in 1 second...")
+            time.sleep(1)
+            shutil.copy2(file_path, temp_xl_path)
+            xl = pd.ExcelFile(temp_xl_path)
+        except Exception as e:
+            print(f"Error copying/opening file: {e}")
+            return
+
         sheet_names = sorted(xl.sheet_names)
+        if not sheet_names:
+            print("Error: No sheets found in the Excel file.")
+            return
         
         all_sheets_data = []
         overall_total = 0
@@ -280,6 +308,13 @@ def process_file():
         
     except Exception as e:
         print(f"Error extracting data: {e}")
+    finally:
+        # Clean up temporary copy
+        if temp_xl_path and os.path.exists(temp_xl_path):
+            try:
+                os.remove(temp_xl_path)
+            except:
+                pass
 
 if __name__ == "__main__":
     process_file()
