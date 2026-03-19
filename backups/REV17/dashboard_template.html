@@ -865,31 +865,29 @@
 
             // Populate Defect Status List in Deep-Dive
             const defectBody = document.querySelector('#deep-dive-defect-table tbody');
-            if (defectBody) {
-                defectBody.innerHTML = '';
-                let allFails = [];
-                line.trend.forEach(day => {
-                    if (day.fail_details && day.fail_details.models) {
-                        for (const [model, count] of Object.entries(day.fail_details.models)) {
-                            allFails.push({ date: day.date, model: model, count: count });
-                        }
-                    }
-                });
-                
-                if (allFails.length === 0) {
-                    defectBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 2rem; color: var(--text-muted);">불량 기록이 없습니다.</td></tr>';
-                } else {
-                    allFails.sort((a, b) => b.date.localeCompare(a.date)).forEach(f => {
-                        const tr = document.createElement('tr');
-                        tr.style.borderBottom = '1px solid #f1f5f9';
-                        tr.innerHTML = `
-                            <td style="padding: 0.8rem 0.6rem; color: #64748b; font-size: 0.85rem;">${f.date}</td>
-                            <td style="padding: 0.8rem 0.6rem; font-weight: 600; color: #1e293b; font-size: 0.9rem;">${f.model}</td>
-                            <td style="padding: 0.8rem 0.6rem; text-align: right; font-weight: 800; color: #ef4444; font-size: 1rem;">${f.count.toLocaleString()}</td>
-                        `;
-                        defectBody.appendChild(tr);
+            defectBody.innerHTML = '';
+            let allFails = [];
+            line.trend.forEach(day => {
+                if (day.fail_details) {
+                    day.fail_details.forEach(f => {
+                        allFails.push({ date: day.date, model: f.model, count: f.count });
                     });
                 }
+            });
+            
+            if (allFails.length === 0) {
+                defectBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 2rem; color: var(--text-muted);">불량 기록이 없습니다.</td></tr>';
+            } else {
+                allFails.sort((a, b) => b.date.localeCompare(a.date)).forEach(f => {
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid #f1f5f9';
+                    tr.innerHTML = `
+                        <td style="padding: 0.8rem 0.6rem; color: #64748b; font-size: 0.85rem;">${f.date}</td>
+                        <td style="padding: 0.8rem 0.6rem; font-weight: 600; color: #1e293b; font-size: 0.9rem;">${f.model}</td>
+                        <td style="padding: 0.8rem 0.6rem; text-align: right; font-weight: 800; color: #ef4444; font-size: 1rem;">${f.count.toLocaleString()}</td>
+                    `;
+                    defectBody.appendChild(tr);
+                });
             }
         }
 
