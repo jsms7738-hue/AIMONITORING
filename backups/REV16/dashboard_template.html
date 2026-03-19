@@ -547,41 +547,22 @@
                         </div>
                     </div>
 
-                    <div class="stat-card" style="flex: 0.8; display: flex; flex-direction: column; padding: 1rem; overflow: hidden;">
-                        <h2 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.8rem;">일자별 생산 요약</h2>
+                    <div class="stat-card" style="flex: 0.8; display: flex; flex-direction: column; padding: 1.5rem; overflow: hidden;">
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 1rem;">일자별 상세 기록</h2>
                         <div style="flex: 1; overflow-y: auto; border-radius: 8px;">
                             <table id="line-detail-table">
                                 <thead style="position: sticky; top: 0; z-index: 2;">
                                     <tr style="background: var(--card-bg);">
-                                        <th style="padding: 0.6rem 0.2rem; border-bottom: 2px solid var(--table-border); font-size: 0.75rem;">일자</th>
-                                        <th style="padding: 0.6rem 0.2rem; border-bottom: 2px solid var(--table-border); font-size: 0.75rem;">전체</th>
-                                        <th style="padding: 0.6rem 0.2rem; border-bottom: 2px solid var(--table-border); font-size: 0.75rem;">양품</th>
-                                        <th style="padding: 0.6rem 0.2rem; border-bottom: 2px solid var(--table-border); font-size: 0.75rem;">불량</th>
-                                        <th style="padding: 0.6rem 0.2rem; border-bottom: 2px solid var(--table-border); font-size: 0.75rem;">직행율</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">일자</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">전체</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">양품(G)</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">불량(N)</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">직행율</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
-
-                <!-- NEW: Deep-Dive Defect Issue List -->
-                <div class="stat-card" style="margin-top: 1rem; padding: 1.2rem; flex-shrink: 0; min-height: 200px; display: flex; flex-direction: column;">
-                    <h2 style="font-size: 1.1rem; font-weight: 800; color: #ef4444; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span>🚨</span> 라인별 불량 발생 현황 (상세 내역)
-                    </h2>
-                    <div style="flex: 1; overflow-y: auto;">
-                        <table id="deep-dive-defect-table" style="width: 100%; border-collapse: collapse;">
-                            <thead style="position: sticky; top: 0; background: var(--card-bg); z-index: 10;">
-                                <tr>
-                                    <th style="padding: 0.6rem; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 0.85rem; width: 15%;">발생일자</th>
-                                    <th style="padding: 0.6rem; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 0.85rem; width: 70%;">모델명</th>
-                                    <th style="padding: 0.6rem; text-align: right; border-bottom: 2px solid #e2e8f0; font-size: 0.85rem; width: 15%;">불량수량</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -654,16 +635,6 @@
             logger("Chart.js ready");
         }
 
-        const lineNameMap = {
-            'MPDA': 'Line 2A', 'MPDB': 'Line 2B', 'MPDC': 'Line 2C',
-            'MPDD': 'Line 2D', 'MPDE': 'Line 2E', 'MPDF': 'Line 2F',
-            'MPDG': 'Line 2G', 'MPDH': 'Line 2H', 'MPDI': 'Line 2I'
-        };
-
-        function getLineDisplayName(id) {
-            return lineNameMap[id] || id;
-        }
-
         function initNavigation() {
             const nav = id('nav-sidebar');
             if (typeof allLineIds === 'undefined') return;
@@ -673,8 +644,7 @@
                 const a = document.createElement('a');
                 a.href = `dashboard_${lineId}.html`;
                 a.className = `nav-item ${typeof activeLineId !== 'undefined' && activeLineId === lineId ? 'active' : ''}`;
-                const shortName = lineId.replace('MPD', '');
-                a.innerHTML = `<span class="icon">L</span><span class="label" style="font-size:0.6rem;">${shortName}</span>`;
+                a.innerHTML = `<span class="icon">L</span><span class="label" style="font-size:0.6rem;">${lineId}</span>`;
                 nav.appendChild(a);
             });
         }
@@ -756,7 +726,7 @@
                 card.onclick = () => window.location.href = `dashboard_${line.line_id}.html`;
                 card.innerHTML = `
                     <div class="sheet-header">
-                        <div class="sheet-title" style="color:#4338ca; font-weight:800;">${getLineDisplayName(line.line_id)}</div>
+                        <div class="sheet-title" style="color:#4338ca; font-weight:800;">Line ${line.line_id}</div>
                         <div class="badge" style="background:${line.pass_rate < 95 ? '#fee2e2':'#dcfce7'}; color:${line.pass_rate < 95 ? '#991b1b':'#166534'}; font-weight:700;">
                             ${line.pass_rate}%
                         </div>
@@ -799,7 +769,7 @@
             id('nav-sidebar').style.display = 'none';
             id('sidebar').style.display = 'none';
             id('deep-dive-view').style.display = 'flex';
-            id('deep-dive-title').innerText = getLineDisplayName(lineId);
+            id('deep-dive-title').innerText = `Line ${lineId}`;
             
             const yieldContainer = id('deep-dive-yield-card');
             const rate = line.pass_rate;
@@ -862,33 +832,6 @@
                 `;
                 recordBody.appendChild(tr);
             });
-
-            // Populate Defect Status List in Deep-Dive
-            const defectBody = document.querySelector('#deep-dive-defect-table tbody');
-            defectBody.innerHTML = '';
-            let allFails = [];
-            line.trend.forEach(day => {
-                if (day.fail_details) {
-                    day.fail_details.forEach(f => {
-                        allFails.push({ date: day.date, model: f.model, count: f.count });
-                    });
-                }
-            });
-            
-            if (allFails.length === 0) {
-                defectBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 2rem; color: var(--text-muted);">불량 기록이 없습니다.</td></tr>';
-            } else {
-                allFails.sort((a, b) => b.date.localeCompare(a.date)).forEach(f => {
-                    const tr = document.createElement('tr');
-                    tr.style.borderBottom = '1px solid #f1f5f9';
-                    tr.innerHTML = `
-                        <td style="padding: 0.8rem 0.6rem; color: #64748b; font-size: 0.85rem;">${f.date}</td>
-                        <td style="padding: 0.8rem 0.6rem; font-weight: 600; color: #1e293b; font-size: 0.9rem;">${f.model}</td>
-                        <td style="padding: 0.8rem 0.6rem; text-align: right; font-weight: 800; color: #ef4444; font-size: 1rem;">${f.count.toLocaleString()}</td>
-                    `;
-                    defectBody.appendChild(tr);
-                });
-            }
         }
 
         function renderHourlyChart(line, filterDate) {
