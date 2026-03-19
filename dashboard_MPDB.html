@@ -482,7 +482,7 @@
                     </div>
                 </div>
 
-                <div class="stat-card compact" id="summary-card" style="margin-top: 0; min-height: 180px; flex-shrink: 0; overflow: hidden; display: flex; flex-direction: column; padding: 0;">
+                <div class="stat-card compact" id="summary-card" style="margin-top: 0; max-height: 260px; min-height: 180px; flex-shrink: 0; overflow: hidden; display: flex; flex-direction: column; padding: 0;">
                     <div style="padding: 0.8rem 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 0.5rem;">
                         <span style="font-size: 1.1rem;">📊</span>
                         <h2 id="summary-title" style="margin:0; color: #4338ca; font-size: 1rem; font-weight: 800;">상세 요약</h2>
@@ -547,41 +547,22 @@
                         </div>
                     </div>
 
-                    <div class="stat-card" style="flex: 0.8; display: flex; flex-direction: column; padding: 1rem; overflow: hidden;">
-                        <h2 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.8rem;">일자별 생산 요약</h2>
+                    <div class="stat-card" style="flex: 0.8; display: flex; flex-direction: column; padding: 1.5rem; overflow: hidden;">
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 1rem;">일자별 상세 기록</h2>
                         <div style="flex: 1; overflow-y: auto; border-radius: 8px;">
                             <table id="line-detail-table">
                                 <thead style="position: sticky; top: 0; z-index: 2;">
                                     <tr style="background: var(--card-bg);">
-                                        <th style="padding: 0.6rem 0.2rem; border-bottom: 2px solid var(--table-border); font-size: 0.75rem;">일자</th>
-                                        <th style="padding: 0.6rem 0.2rem; border-bottom: 2px solid var(--table-border); font-size: 0.75rem;">전체</th>
-                                        <th style="padding: 0.6rem 0.2rem; border-bottom: 2px solid var(--table-border); font-size: 0.75rem;">양품</th>
-                                        <th style="padding: 0.6rem 0.2rem; border-bottom: 2px solid var(--table-border); font-size: 0.75rem;">불량</th>
-                                        <th style="padding: 0.6rem 0.2rem; border-bottom: 2px solid var(--table-border); font-size: 0.75rem;">직행율</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">일자</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">전체</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">양품(G)</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">불량(N)</th>
+                                        <th style="padding: 0.8rem 0.4rem; border-bottom: 2px solid var(--table-border); font-size: 0.8rem;">직행율</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
-
-                <!-- NEW: Deep-Dive Defect Issue List -->
-                <div class="stat-card" style="margin-top: 1rem; padding: 1.2rem; flex-shrink: 0; min-height: 200px; display: flex; flex-direction: column;">
-                    <h2 style="font-size: 1.1rem; font-weight: 800; color: #ef4444; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span>🚨</span> 라인별 불량 발생 현황 (상세 내역)
-                    </h2>
-                    <div style="flex: 1; overflow-y: auto;">
-                        <table id="deep-dive-defect-table" style="width: 100%; border-collapse: collapse;">
-                            <thead style="position: sticky; top: 0; background: var(--card-bg); z-index: 10;">
-                                <tr>
-                                    <th style="padding: 0.6rem; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 0.85rem; width: 15%;">발생일자</th>
-                                    <th style="padding: 0.6rem; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 0.85rem; width: 70%;">모델명</th>
-                                    <th style="padding: 0.6rem; text-align: right; border-bottom: 2px solid #e2e8f0; font-size: 0.85rem; width: 15%;">불량수량</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
                     </div>
                 </div>
             </div>
