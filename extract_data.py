@@ -1,6 +1,8 @@
 import pandas as pd
 import json
 import os
+import shutil
+import time
 
 # Get the directory where the script is located
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -11,8 +13,23 @@ if not os.path.exists(output_dir):
 json_path = os.path.join(output_dir, "data.json")
 
 def process_file():
+    temp_copy = None
     try:
-        xl = pd.ExcelFile(file_path)
+        if not os.path.exists(file_path):
+            print(f"Error: Excel file not found at {file_path}")
+            return
+
+        # Skip temporary files (Excel lock files)
+        filename = os.path.basename(file_path)
+        if filename.startswith("~$"):
+            print(f"Skipping temporary file: {filename}")
+            return
+
+        # Create a temporary copy to avoid file locking issues (Permission Denied)
+        temp_copy = f"temp_{int(time.time())}_{filename}"
+        shutil.copy2(file_path, temp_copy)
+        
+        xl = pd.ExcelFile(temp_copy)
         sheet_names = sorted(xl.sheet_names)
         
         all_sheets_data = []
@@ -337,6 +354,13 @@ def process_file():
         
     except Exception as e:
         print(f"Error extracting data: {e}")
+    finally:
+        # Cleanup temporary copy
+        if temp_copy and os.path.exists(temp_copy):
+            try:
+                os.remove(temp_copy)
+            except:
+                pass
 
 if __name__ == "__main__":
     process_file()
